@@ -1,0 +1,56 @@
+{
+  "name": "@falcondev-oss/lang-vue",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Type-safe i18n where the English source text is the key. Vue adapter.",
+  "license": "MIT",
+  "repository": "github:falcondev-oss/lang",
+  "bugs": {
+    "url": "https://github.com/falcondev-oss/lang/issues"
+  },
+  "keywords": [
+    "i18n",
+    "translation",
+    "localization",
+    "typescript",
+    "vue"
+  ],
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "publishConfig": {
+    "types": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": {
+          "types": "./dist/index.d.ts",
+          "default": "./dist/index.js"
+        },
+        "require": {
+          "types": "./dist/index.d.cts",
+          "default": "./dist/index.cjs"
+        }
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "build": "tsdown",
+    "type-check": "tsc --build"
+  },
+  "peerDependencies": {
+    "@falcondev-oss/lang-core": "workspace:^",
+    "vue": ">=3.5.0 <4"
+  },
+  "devDependencies": {
+    "@falcondev-oss/lang-core": "workspace:*",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0",
+    "vue": "^3.5.44"
+  }
+}

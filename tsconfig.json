@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": false,
+    "lib": ["es2024"],
+    "declarationMap": false,
+    "emitDeclarationOnly": false
+  },
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/react" },
+    { "path": "./packages/vue" }
+  ],
+  "include": ["*.ts", "*.js"]
+}

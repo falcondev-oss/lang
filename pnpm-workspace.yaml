@@ -1,0 +1,22 @@
+packages:
+  - packages/*
+
+allowBuilds:
+  esbuild: true
+  unrs-resolver: true
+
+minimumReleaseAgeExclude:
+  - '@oxlint/binding-darwin-x64@1.91.0'
+  - '@oxlint/binding-freebsd-x64@1.91.0'
+  - '@oxlint/binding-linux-arm-gnueabihf@1.91.0'
+  - '@oxlint/binding-linux-arm-musleabihf@1.91.0'
+  - '@oxlint/binding-linux-ppc64-gnu@1.91.0'
+  - '@oxlint/binding-linux-riscv64-gnu@1.91.0'
+  - '@oxlint/binding-linux-riscv64-musl@1.91.0'
+  - '@oxlint/binding-linux-s390x-gnu@1.91.0'
+  - '@oxlint/binding-linux-x64-gnu@1.91.0'
+  - '@oxlint/binding-linux-x64-musl@1.91.0'
+  - '@oxlint/binding-win32-ia32-msvc@1.91.0'
+  - '@oxlint/binding-win32-x64-msvc@1.91.0'
+  - oxlint@1.91.0
+  - tsdown@0.23.5

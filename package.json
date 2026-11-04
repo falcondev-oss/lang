@@ -1,0 +1,47 @@
+{
+  "name": "@falcondev-oss/lang",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Type-safe i18n where the English source text is the key. Framework-agnostic core with Vue and React / React Native adapters.",
+  "license": "MIT",
+  "repository": "github:falcondev-oss/lang",
+  "bugs": {
+    "url": "https://github.com/falcondev-oss/lang/issues"
+  },
+  "keywords": [
+    "i18n",
+    "translation",
+    "localization",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": ">=11",
+      "onFail": "warn"
+    }
+  },
+  "scripts": {
+    "test": "pnpm -r --color run test",
+    "build": "pnpm -r --color run build",
+    "type-check": "tsc --build",
+    "lint": "oxlint --type-aware && prettier --check --cache .",
+    "lint:ci": "oxlint --type-aware && prettier --check --cache --cache-strategy content .",
+    "lint:fix": "oxlint --type-aware --fix && prettier --write --cache ."
+  },
+  "devDependencies": {
+    "@falcondev-oss/configs": "^6.0.6",
+    "oxlint": "^1.91.0",
+    "oxlint-tsgolint": "^7.0.2005",
+    "prettier": "^3.9.10",
+    "tsdown": "^0.23.5",
+    "typescript": "^7.0.2"
+  },
+  "changelogithub": {
+    "extends": "gh:falcondev-it/configs/changelogithub"
+  }
+}
