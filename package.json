@@ -27,7 +27,8 @@
   },
   "scripts": {
     "test": "pnpm -r --color run test",
-    "build": "pnpm -r --color run build",
+    "build": "tsc --build && pnpm -r --color run build && pnpm check:dts",
+    "check:dts": "tsc --ignoreConfig --noEmit --skipLibCheck false --strict --module preserve --moduleResolution bundler --target es2024 --lib es2024,dom packages/*/dist/index.d.ts packages/*/dist/index.d.cts",
     "type-check": "tsc --build",
     "lint": "oxlint --type-aware && prettier --check --cache .",
     "lint:ci": "oxlint --type-aware && prettier --check --cache --cache-strategy content .",
