@@ -1,7 +1,7 @@
 {
   "name": "@falcondev-oss/lang-core",
   "type": "module",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Type-safe i18n where the English source text is the key. Framework-agnostic core.",
   "license": "MIT",
   "repository": "github:falcondev-oss/lang",
