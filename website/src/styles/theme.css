@@ -1,0 +1,114 @@
+/* Violet on graphite: the same family as the gha-cache-server docs, with lang's accent. */
+:root {
+  --sl-font: 'Geist Variable', 'Noto Sans JP Variable', ui-sans-serif, system-ui, sans-serif;
+  --sl-font-mono:
+    'Geist Mono Variable', 'Noto Sans JP Variable', ui-monospace, 'SFMono-Regular', monospace;
+
+  --sl-color-accent-low: oklch(29% 0.09 300);
+  --sl-color-accent: oklch(68% 0.19 300);
+  --sl-color-accent-high: oklch(84% 0.1 300);
+
+  --sl-color-white: oklch(97% 0.005 295);
+  --sl-color-gray-1: oklch(92% 0.008 295);
+  --sl-color-gray-2: oklch(80% 0.012 295);
+  --sl-color-gray-3: oklch(66% 0.014 295);
+  --sl-color-gray-4: oklch(48% 0.014 295);
+  --sl-color-gray-5: oklch(31% 0.012 295);
+  --sl-color-gray-6: oklch(21% 0.01 295);
+  --sl-color-black: oklch(15.5% 0.008 295);
+
+  --sl-color-bg-nav: oklch(15.5% 0.008 295 / 0.8);
+  --sl-color-hairline: oklch(100% 0 0 / 0.08);
+  --sl-color-hairline-light: oklch(100% 0 0 / 0.06);
+  --sl-content-width: 48rem;
+  --sl-line-height-headings: 1.15;
+}
+
+:root[data-theme='light'] {
+  --sl-color-accent-low: oklch(94% 0.035 300);
+  --sl-color-accent: oklch(52% 0.22 300);
+  --sl-color-accent-high: oklch(38% 0.17 300);
+
+  --sl-color-white: oklch(18% 0.01 295);
+  --sl-color-gray-1: oklch(24% 0.01 295);
+  --sl-color-gray-2: oklch(36% 0.012 295);
+  --sl-color-gray-3: oklch(48% 0.014 295);
+  --sl-color-gray-4: oklch(64% 0.012 295);
+  --sl-color-gray-5: oklch(86% 0.008 295);
+  --sl-color-gray-6: oklch(95% 0.005 295);
+  --sl-color-gray-7: oklch(97.5% 0.004 295);
+  --sl-color-black: oklch(99.3% 0.003 295);
+
+  --sl-color-bg-nav: oklch(99.3% 0.003 295 / 0.8);
+  --sl-color-hairline: oklch(0% 0 0 / 0.09);
+  --sl-color-hairline-light: oklch(0% 0 0 / 0.06);
+}
+
+header.header {
+  backdrop-filter: blur(12px);
+  border-bottom-color: var(--sl-color-hairline);
+}
+
+.site-title {
+  color: var(--sl-color-white);
+  font-size: var(--sl-text-lg);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sidebar-content a[aria-current='page'] {
+  background: var(--sl-color-accent-low);
+  color: var(--sl-color-accent-high);
+  font-weight: 500;
+}
+
+.sl-markdown-content :is(h1, h2, h3, h4) {
+  letter-spacing: -0.02em;
+}
+
+.sl-markdown-content h3 code {
+  font-size: 0.95em;
+}
+
+h1#_top {
+  letter-spacing: -0.035em;
+}
+
+.sl-markdown-content table {
+  display: table;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--sl-text-sm);
+}
+.sl-markdown-content :is(th, td) {
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-hairline);
+  padding: 0.5rem 0.75rem 0.5rem 0;
+  background: none !important;
+}
+.sl-markdown-content th {
+  color: var(--sl-color-gray-3);
+  font-weight: 500;
+  font-size: var(--sl-text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.sl-markdown-content :not(pre) > code:not(:where(.not-content *)) {
+  border: 1px solid var(--sl-color-hairline);
+  background: var(--sl-color-gray-6);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.3em;
+}
+
+.sl-markdown-content a {
+  text-decoration-color: color-mix(in oklch, var(--sl-color-accent) 45%, transparent);
+  text-underline-offset: 0.2em;
+}
+.sl-markdown-content a:hover {
+  text-decoration-color: var(--sl-color-accent);
+}
+
+::selection {
+  background: color-mix(in oklch, var(--sl-color-accent) 35%, transparent);
+}
