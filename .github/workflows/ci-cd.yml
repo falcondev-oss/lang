@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: ['**']
+    # the docs site in website/ builds and deploys on its own (Cloudflare Workers Builds)
+    paths-ignore:
+      - website/**
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

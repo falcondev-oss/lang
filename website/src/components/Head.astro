@@ -1,0 +1,11 @@
+---
+import Default from '@astrojs/starlight/components/Head.astro'
+
+// fallback pages in other languages show the English entry, so link its Markdown
+const { entry } = Astro.locals.starlightRoute
+const markdown = new URL(entry.data.template === 'splash' ? '/llms.txt' : `/${entry.id}.md`, Astro.site)
+---
+
+<Default />
+<link rel="alternate" type="text/markdown" href={markdown} title="Markdown" />
+<link rel="help" type="text/plain" href={new URL('/llms.txt', Astro.site)} title="llms.txt" />

@@ -1,0 +1,152 @@
+---
+title: Getting started
+description: 'Install lang, create the setup once, write your first translated texts with t() and read them fully typed in Vue, React, React Native or plain TypeScript.'
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+Three steps: create the setup, write texts next to their translations, read them where you need them.
+
+## 1. Install
+
+<Tabs syncKey="framework">
+  <TabItem label="Vue">
+
+```sh
+npm add @falcondev-oss/lang-core @falcondev-oss/lang-vue
+```
+
+  </TabItem>
+  <TabItem label="React">
+
+```sh
+npm add @falcondev-oss/lang-core @falcondev-oss/lang-react
+```
+
+Works the same in React DOM and React Native.
+
+  </TabItem>
+  <TabItem label="TypeScript">
+
+```sh
+npm add @falcondev-oss/lang-core
+```
+
+  </TabItem>
+</Tabs>
+
+## 2. Create the setup
+
+Call `createLang()` once per app and export what you need. `base` is the language your source texts are written in, `languages` lists every language you support.
+
+```ts title="lang/setup.ts"
+import { createLang } from '@falcondev-oss/lang-core'
+
+export const lang = createLang({ base: 'en', languages: ['en', 'de'] })
+export const { t, group } = lang
+export type Language = (typeof lang.languages)[number] // 'en' | 'de'
+```
+
+## 3. Write texts
+
+A text is the English source text plus every other language. The English text is the key.
+
+```ts title="lang/translations.ts"
+import { group, t } from './setup'
+
+export const translations = {
+  common: group(t('Save', { de: 'Speichern' }), t('Cancel', { de: 'Abbrechen' })),
+  login: {
+    title: t('Sign in', { de: 'Anmelden' }),
+    errors: group(t('Invalid email address', { de: 'Ungültige E-Mail-Adresse' })),
+  },
+}
+```
+
+Leave out `de` and TypeScript reports the missing translation at that line. Hover a text in your editor and its type lists every translation.
+
+## 4. Read texts
+
+<Tabs syncKey="framework">
+  <TabItem label="Vue">
+
+```ts title="lang/index.ts"
+import { createUseLang } from '@falcondev-oss/lang-vue'
+import { ref } from 'vue'
+import { lang, type Language } from './setup'
+import { translations } from './translations'
+
+export const locale = ref<Language>('en')
+export const useLang = createUseLang(lang, locale, translations)
+```
+
+```vue title="LoginForm.vue"
+<script setup lang="ts">
+import { useLang } from '~/lang'
+
+const text = useLang((all) => all.login)
+</script>
+
+<template>
+  <h1>{{ text.title }}</h1>
+</template>
+```
+
+`useLang()` returns a `ComputedRef` that updates when `locale` changes. See [Vue](/frameworks/vue).
+
+  </TabItem>
+  <TabItem label="React">
+
+```ts title="lang/index.ts"
+import { createLangContext } from '@falcondev-oss/lang-react'
+import { lang } from './setup'
+import { translations } from './translations'
+
+export const { LangProvider, useLang } = createLangContext(lang, translations)
+```
+
+```tsx title="App.tsx"
+import { useState } from 'react'
+import { LangProvider, useLang } from './lang'
+import type { Language } from './lang/setup'
+
+export function App() {
+  const [locale, setLocale] = useState<Language>('en')
+  return (
+    <LangProvider lang={locale}>
+      <LoginTitle />
+    </LangProvider>
+  )
+}
+
+function LoginTitle() {
+  const text = useLang((all) => all.login)
+  return <h1>{text.title}</h1>
+}
+```
+
+Every `useLang()` below the provider re-renders when `lang` changes. See [React](/frameworks/react).
+
+  </TabItem>
+  <TabItem label="TypeScript">
+
+```ts
+import { lang } from './lang/setup'
+import { translations } from './lang/translations'
+
+const useLang = lang.createUseLang('de', translations)
+
+useLang().common.Save // 'Speichern'
+useLang((all) => all.login).errors['Invalid email address'] // 'Ungültige E-Mail-Adresse'
+```
+
+`createUseLang` binds one language. Call it again for another language, or use an adapter for reactive switching.
+
+  </TabItem>
+</Tabs>
+
+## Next
+
+- [Texts](/guide/texts): custom keys and what the types show
+- [Parameters](/guide/parameters): numbers, names, plurals, `Intl`
+- [Zod](/guide/zod): translated validation messages

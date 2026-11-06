@@ -1,0 +1,198 @@
+---
+import './landing.css'
+import { createUseLang, lang as site, prefix, type Language } from '../../i18n/lang'
+import { translations } from '../../i18n/translations'
+import { ITEMS } from './items'
+import type { ZodMessages } from './page'
+import type { PlaygroundStrings } from './playground'
+
+interface Props {
+  lang?: Language
+}
+const { lang = 'en' } = Astro.props
+const read = (l: Language) => createUseLang(l, translations)()
+const text = read(lang)
+const base = prefix(lang)
+
+const repo = 'https://github.com/falcondev-oss/lang'
+const install = 'pnpm add @falcondev-oss/lang-core'
+const copyIcon =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>'
+
+const { playground: pg } = text
+const strings: PlaygroundStrings = {
+  titles: pg.items,
+  subs: pg.subs,
+  tags: { tryIt: pg.ui.tryIt, fixIt: pg.ui.fixIt },
+  scrollHint: pg.scrollHint,
+  steps: ITEMS.map((_, i) => pg.step({ n: i + 1, of: ITEMS.length })),
+  renders: pg.ui.renders,
+  live: pg.ui.live,
+  noProblems: pg.ui['No problems'],
+  solved: pg.ui['Compiles. Every language renders.'],
+  nothing: pg.ui['nothing rendered'],
+}
+const each = <T,>(fn: (l: Language) => T) =>
+  Object.fromEntries(site.languages.map((l) => [l, fn(l)])) as Record<Language, T>
+const messages: ZodMessages = each((l) => {
+  const v = read(l).validation
+  return {
+    required: v.required,
+    invalidEmail: v.invalidEmail,
+    tooLong: v.tooLong({ maximum: 50 }),
+    tooShort: v.tooShort({ minimum: 8 }),
+  }
+})
+// every background word in every language: [['Save', 'Speichern', …], …]
+const words = Object.keys(text.background).map((key) =>
+  site.languages.map((l) => read(l).background[key as keyof typeof text.background]),
+)
+const data = { lang, strings, messages, words, headline: each((l) => read(l).hero.title) }
+const json = JSON.stringify(data).replaceAll('<', '\\u003c')
+---
+
+<div class="landing not-content">
+  <canvas class="dither" aria-hidden="true" data-dither></canvas>
+  <div class="bg-words" aria-hidden="true" data-words></div>
+  <section class="hero">
+    <div class="hero-top">
+      <h1 id="_top" data-headline>{text.hero.title}</h1>
+      <div>
+        <p class="lede" set:html={text.hero.lede({ t: '<code>t()</code>' })} />
+        <div class="actions">
+          <a class="button primary" href={`${base}/getting-started`}>{text.hero['Get started']}</a>
+          <div class="install">
+            <b>$</b>{install}<button type="button" aria-label={text.hero['Copy install command']} data-copy={install} set:html={copyIcon} />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="book-scroll" data-book>
+      <div class="book" data-playground>
+        <div class="book-side">
+          <ol class="book-list" data-list></ol>
+          <p class="scroll-hint" aria-hidden="true"><span class="chev"></span>{pg.scrollHint}</p>
+        </div>
+        <div class="book-stage">
+          <div class="book-head">
+            <div class="seg" data-fw role="group" aria-label={pg.ui.Framework}>
+              <button type="button" aria-pressed="true" data-fw="vue">Vue</button>
+              <button type="button" aria-pressed="false" data-fw="react">React</button>
+            </div>
+            <span class="step" data-step></span>
+            <span class="hint" set:html={pg.hint({ code: '<code>text.</code>' })} />
+          </div>
+          <div class="ed" data-trans></div>
+          <div class="book-two">
+            <div class="ed" data-use></div>
+            <div class="quad" data-render></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="zod">
+      <div data-reveal>
+        <h2 data-decode>{text.zod.title}</h2>
+        <p class="lede2">{text.zod.body}</p>
+        <p class="lede2 dim">{text.zod.hint}</p>
+        <a class="text-link" href={`${base}/guide/zod`}>{text.zod['Zod guide →']}</a>
+      </div>
+      <div class="zplay" data-reveal>
+        <form class="zform" data-zod-form novalidate>
+          <div class="zrow">
+            <div class="seg" data-zod-lang role="group" aria-label={text.zod['Form language']}></div>
+            <small>{text.zod['live, nothing is sent']}</small>
+          </div>
+          <label><span>{text.zod.Name} <code>max 50</code></span><input name="name" autocomplete="off" value="" /><p class="ui-msg" aria-live="polite"></p></label>
+          <label><span>{text.zod.Email}</span><input name="email" autocomplete="off" value="mia@example" /><p class="ui-msg" aria-live="polite"></p></label>
+          <label><span>{text.zod.Password} <code>min 8</code></span><input name="password" type="password" autocomplete="off" value="hunter2" /><p class="ui-msg" aria-live="polite"></p></label>
+        </form>
+        <div class="ed" data-zod-schema></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="safety">
+      <div class="ed" data-safety data-reveal></div>
+      <div data-reveal>
+        <h2 data-decode>{text.safety.title}</h2>
+        <p class="lede2" set:html={text.safety.body({ t: '<code>t()</code>' })} />
+      </div>
+    </div>
+  </section>
+
+  <section class="sec closing" data-reveal>
+    <h2 data-decode>{text.closing.title}</h2>
+    <div class="actions">
+      <a class="button primary" href={`${base}/getting-started`}>{text.closing.guide}</a>
+      <a class="button" href={repo}>GitHub</a>
+    </div>
+    <p class="foot" set:html={text.closing.foot({ by: '<a href="https://falcondev.io">falconDev</a>' })} />
+  </section>
+
+  <script type="application/json" data-landing set:html={json} />
+</div>
+
+<script>
+  import Lenis from 'lenis'
+  import 'lenis/dist/lenis.css'
+  import type { Language } from '../../i18n/lang'
+  import { initCopy, initDecodeOnScroll, initHeadline, initSafety, initZodForm, type ZodMessages } from './page'
+  import { initPlayground, type PlaygroundStrings } from './playground'
+  import { initDither } from './dither'
+  import { initWords } from './words'
+
+  const landing = document.querySelector<HTMLElement>('.landing')!
+  const data = JSON.parse(landing.querySelector('[data-landing]')!.textContent!) as {
+    lang: Language
+    strings: PlaygroundStrings
+    messages: ZodMessages
+    headline: Record<Language, string>
+    words: string[][]
+  }
+  landing.classList.add('js')
+  initDither(landing.querySelector('[data-dither]')!)
+  initWords(landing.querySelector('[data-words]')!, data.words)
+
+  // smooth scrolling, unless the reader asked for less motion
+  const lenis = matchMedia('(prefers-reduced-motion: reduce)').matches ? null : new Lenis({ autoRaf: true })
+  const scroller = {
+    scrollTo: (y: number, done: () => void) => {
+      if (lenis) return lenis.scrollTo(y, { duration: 1.1, onComplete: done })
+      scrollTo({ top: y, behavior: 'instant' })
+      done()
+    },
+    onScroll: (fn: () => void) => addEventListener('scroll', fn, { passive: true }),
+  }
+
+  // blocks below the fold rise in once
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (!e.isIntersecting) continue
+        e.target.classList.add('in')
+        io.unobserve(e.target)
+      }
+    },
+    { rootMargin: '0px 0px -12% 0px' },
+  )
+  for (const el of landing.querySelectorAll('[data-reveal]')) io.observe(el)
+
+  void initHeadline(landing.querySelector('[data-headline]')!, data.headline, data.lang)
+  initDecodeOnScroll(landing.querySelectorAll<HTMLElement>('[data-decode]'))
+  initPlayground(landing.querySelector('[data-book]')!, data.strings, scroller)
+  initZodForm(
+    landing.querySelector('[data-zod-form]')!,
+    landing.querySelector('[data-zod-lang]')!,
+    landing.querySelector('[data-zod-schema]')!,
+    data.messages,
+    data.lang,
+  )
+  initSafety(landing.querySelector('[data-safety]')!)
+  initCopy(landing.querySelectorAll<HTMLButtonElement>('[data-copy]'))
+</script>
