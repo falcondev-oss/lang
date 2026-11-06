@@ -869,6 +869,15 @@ main:has(.landing) .content-panel {
     transition:
       opacity 1.4s var(--ease),
       translate 1.4s var(--ease);
+    overflow: hidden;
+    & > span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    & :is(b, i) {
+      flex: none;
+    }
     & b {
       width: 1ch;
       font-weight: 400;

@@ -17,7 +17,7 @@ const CONTENT = 76 * 16 // max width of .landing
 export function initWords(layer: HTMLElement, words: string[][]) {
   const used = new Set<number>()
   const gutter = () => (innerWidth - CONTENT) / 2
-  const fits = () => gutter() >= 170
+  const fits = () => gutter() >= 230
   const sync = () => layer.classList.toggle('on', fits())
   sync()
   addEventListener('resize', sync)
@@ -43,10 +43,10 @@ export function initWords(layer: HTMLElement, words: string[][]) {
     layer.appendChild(el)
     const place = () => {
       el.style.top = `${Math.min(0.93, slot.y + (Math.random() - 0.5) * 0.06) * 100}%`
-      el.style.setProperty(
-        '--x',
-        `${Math.round(24 + Math.random() * Math.max(0, gutter() - 190))}px`,
-      )
+      // never reach into the content: the chip ends at least 24px before it
+      const x = Math.round(16 + Math.random() * Math.min(120, Math.max(0, gutter() - 260)))
+      el.style.setProperty('--x', `${x}px`)
+      el.style.maxWidth = `${gutter() - x - 24}px`
     }
     const show = (word: number, lang: number) => {
       tag.textContent = LANGS[lang] ?? 'en'

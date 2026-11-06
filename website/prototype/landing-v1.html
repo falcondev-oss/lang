@@ -1,0 +1,1629 @@
+<!doctype html>
+<!--
+  PROTOTYPE, throwaway. Landing page directions for the lang docs site.
+  Three variants on one page, switch with the bottom bar, ← / →, or ?variant=a|b|c.
+  The real site will be Astro + Starlight in website/, like gha-cache-server.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Type-safe i18n for Vue and React · lang</title>
+<meta name="description" content="Type-safe i18n where the English text is the key. Write every text once next to its translations and read it back fully typed in Vue, React and React Native. No codegen, no JSON files, translated Zod errors." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&family=Noto+Sans+JP:wght@400..600&display=swap" rel="stylesheet" />
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareSourceCode","name":"lang","description":"Type-safe i18n where the English source text is the key. Framework-agnostic core with Vue and React / React Native adapters.","codeRepository":"https://github.com/falcondev-oss/lang","programmingLanguage":"TypeScript","license":"https://opensource.org/licenses/MIT","author":{"@type":"Organization","name":"falconDev","url":"https://falcondev.io"}}</script>
+<style>
+:root {
+  --font: 'Geist', 'Noto Sans JP', ui-sans-serif, system-ui, sans-serif;
+  --mono: 'Geist Mono', 'Noto Sans JP', ui-monospace, monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --bg: oklch(15.5% 0.008 295);
+  --bg-2: oklch(18.5% 0.01 295);
+  --bg-3: oklch(22% 0.012 295);
+  --line: oklch(100% 0 0 / 0.08);
+  --line-2: oklch(100% 0 0 / 0.14);
+  --tx: oklch(97% 0.005 295);
+  --tx-2: oklch(80% 0.012 295);
+  --tx-3: oklch(64% 0.014 295);
+  --tx-4: oklch(58% 0.014 295);
+  --accent: oklch(72% 0.18 300);
+  --accent-ink: oklch(16% 0.03 300);
+  --accent-low: oklch(30% 0.09 300);
+
+  /* one hue per language, shared by code and preview */
+  --de: oklch(82% 0.13 80);
+  --es: oklch(75% 0.15 32);
+  --ja: oklch(80% 0.11 195);
+  --en: var(--tx);
+
+  --c-kw: oklch(74% 0.14 300);
+  --c-fn: oklch(84% 0.09 265);
+  --c-tag: oklch(78% 0.1 240);
+  --c-pun: oklch(60% 0.014 295);
+  --c-id: oklch(84% 0.012 295);
+  --c-com: oklch(60% 0.014 295);
+  --c-num: oklch(80% 0.1 150);
+  --err: oklch(68% 0.2 25);
+  --ok: oklch(76% 0.14 160);
+  --shadow: 0 1px 0 oklch(100% 0 0 / 0.04) inset, 0 24px 60px -24px oklch(0% 0 0 / 0.6);
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --bg: oklch(99% 0.003 295);
+    --bg-2: oklch(97% 0.005 295);
+    --bg-3: oklch(94% 0.008 295);
+    --line: oklch(0% 0 0 / 0.08);
+    --line-2: oklch(0% 0 0 / 0.14);
+    --tx: oklch(18% 0.01 295);
+    --tx-2: oklch(36% 0.012 295);
+    --tx-3: oklch(50% 0.014 295);
+    --tx-4: oklch(54% 0.012 295);
+    --accent: oklch(52% 0.22 300);
+    --accent-ink: oklch(99% 0.01 300);
+    --accent-low: oklch(93% 0.04 300);
+    --de: oklch(55% 0.13 70);
+    --es: oklch(55% 0.17 32);
+    --ja: oklch(52% 0.1 210);
+    --c-kw: oklch(50% 0.2 300);
+    --c-fn: oklch(45% 0.13 265);
+    --c-tag: oklch(48% 0.13 240);
+    --c-pun: oklch(55% 0.014 295);
+    --c-id: oklch(30% 0.012 295);
+    --c-com: oklch(60% 0.014 295);
+    --c-num: oklch(50% 0.12 150);
+    --err: oklch(55% 0.21 25);
+    --ok: oklch(52% 0.13 160);
+    --shadow: 0 1px 2px oklch(0% 0 0 / 0.04), 0 24px 50px -28px oklch(30% 0.05 295 / 0.35);
+    color-scheme: light;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--tx);
+  font: 400 16px/1.6 var(--font);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+::selection { background: color-mix(in oklch, var(--accent) 38%, transparent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; }
+code, .mono { font-family: var(--mono); }
+h1, h2, h3 { text-wrap: balance; margin: 0; letter-spacing: -0.03em; line-height: 1.08; }
+p { margin: 0; text-wrap: pretty; }
+.variant { display: none; }
+.variant.on { display: block; }
+
+/* ---------- nav ---------- */
+.nav {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 1.5rem;
+  height: 3.75rem; padding-inline: max(1rem, calc((100vw - 76rem) / 2));
+  background: color-mix(in oklch, var(--bg) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.brand { display: flex; align-items: center; gap: 0.55rem; font-weight: 600; font-size: 1.06rem; text-decoration: none; letter-spacing: -0.01em; }
+.brand svg { width: 22px; height: 22px; }
+.nav nav { display: flex; gap: 1.25rem; margin-left: auto; align-items: center; font-size: 0.9rem; color: var(--tx-2); }
+.nav nav a { text-decoration: none; }
+.nav nav a:hover { color: var(--tx); }
+@media (max-width: 640px) { .nav nav .hide-sm, .nav nav:has(#cPageLang:not([hidden])) > .button { display: none; } .install { max-width: 100%; font-size: 0.76rem; white-space: nowrap; overflow: hidden; } }
+
+/* ---------- buttons ---------- */
+.actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.button {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  height: 2.6rem; padding-inline: 1.05rem; border-radius: 0.45rem;
+  border: 1px solid var(--line-2); background: var(--bg-2);
+  font: 500 0.92rem var(--font); text-decoration: none; color: var(--tx);
+  transition: background 0.2s, border-color 0.2s, transform 0.2s var(--ease);
+}
+.button:hover { background: var(--bg-3); border-color: color-mix(in oklch, var(--tx) 24%, transparent); }
+.button:active { transform: translateY(1px); }
+.button.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.button.primary:hover { background: color-mix(in oklch, var(--accent) 88%, white); }
+.button .stars { color: var(--tx-3); font-variant-numeric: tabular-nums; }
+.install {
+  display: inline-flex; align-items: center; gap: 0.75rem;
+  height: 2.6rem; padding: 0 0.5rem 0 0.9rem; border-radius: 0.45rem;
+  border: 1px dashed var(--line-2); font: 0.84rem var(--mono); color: var(--tx-2);
+}
+.install b { color: var(--tx-4); font-weight: 400; }
+.install button {
+  all: unset; cursor: pointer; display: grid; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: 0.3rem; color: var(--tx-3);
+}
+.install button:hover { background: var(--bg-3); color: var(--tx); }
+.install svg { width: 15px; height: 15px; }
+
+/* ---------- editor ---------- */
+.ed {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--bg-2);
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.ed-bar {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 2.15rem; padding-inline: 0.85rem;
+  border-bottom: 1px solid var(--line);
+  font: 0.76rem var(--mono); color: var(--tx-3);
+}
+.ed-bar .file { color: var(--tx-2); }
+.ed-bar .fw { margin-left: auto; color: var(--tx-4); }
+.ed-bar svg { width: 13px; height: 13px; flex: none; }
+.ed-body {
+  padding: 0.7rem 0;
+  font: 400 13px/1.7 var(--mono);
+  overflow-x: auto; scrollbar-width: none;
+  counter-reset: ln;
+}
+.ed-body::-webkit-scrollbar { display: none; }
+.ln {
+  display: grid; grid-template-rows: 1fr;
+  transition: grid-template-rows 0.45s var(--ease), opacity 0.35s, filter 0.35s;
+}
+/* long lines wrap with a hanging indent instead of being clipped */
+.ln > div { min-height: 0; overflow: hidden; white-space: pre-wrap; overflow-wrap: break-word; padding: 0 1rem 0 calc(2.6rem + 2ch); text-indent: -2ch; position: relative; }
+.ln > div::before {
+  counter-increment: ln; content: counter(ln);
+  position: absolute; left: 0; width: 1.7rem; text-align: right; text-indent: 0; color: var(--tx-4); opacity: 0.6;
+}
+.ln.out { grid-template-rows: 0fr; opacity: 0; filter: blur(4px); }
+.ln.out > div::before { counter-increment: none; }
+.ln.flash > div { animation: flash 1.1s var(--ease); }
+@keyframes flash { from { background: color-mix(in oklch, var(--accent) 18%, transparent); } to { background: transparent; } }
+.caret { display: inline-block; width: 2px; height: 1.15em; margin-right: -2px; vertical-align: -0.2em; background: var(--accent); animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.t-kw { color: var(--c-kw); }
+.t-fn { color: var(--c-fn); }
+.t-tag { color: var(--c-tag); }
+.t-pun { color: var(--c-pun); }
+.t-id { color: var(--c-id); }
+.t-com { color: var(--c-com); }
+.t-num { color: var(--c-num); }
+.t-type { color: var(--c-kw); opacity: 0.85; }
+.t-str { color: var(--en); font-weight: 500; }
+.t-str.de, .t-lng.de { color: var(--de); }
+.t-str.es, .t-lng.es { color: var(--es); }
+.t-str.ja, .t-lng.ja { color: var(--ja); }
+.t-str.attr { color: var(--c-num); font-weight: 400; }
+.t-lng { opacity: 0.75; }
+.t-interp { color: var(--c-pun); font-weight: 400; }
+.sq { text-decoration: wavy underline var(--err); text-decoration-skip-ink: none; text-underline-offset: 4px; }
+
+.ed:has(.tip.show) { z-index: 4; }
+.tip {
+  position: absolute; z-index: 5; left: 2.4rem; max-width: calc(100% - 3.5rem);
+  padding: 0.55rem 0.75rem; border-radius: 0.45rem;
+  background: var(--bg-3); border: 1px solid var(--line-2);
+  box-shadow: 0 16px 40px -12px oklch(0% 0 0 / 0.55);
+  font: 12px/1.65 var(--mono); white-space: pre-wrap; color: var(--tx-2);
+  opacity: 0; transform: translateY(-4px); filter: blur(3px);
+  transition: opacity 0.3s, transform 0.4s var(--ease), filter 0.3s;
+  pointer-events: none;
+}
+.tip.show { opacity: 1; transform: none; filter: none; }
+.tip .e { color: var(--err); }
+
+/* ---------- preview (rendered UI) ---------- */
+.pv {
+  position: relative; min-width: 0;
+  border: 1px solid var(--line); border-radius: 0.6rem;
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in oklch, var(--tx) 9%, transparent) 1px, transparent 0) 0 0 / 14px 14px,
+    var(--bg);
+  display: grid; grid-template-rows: auto 1fr;
+  overflow: hidden;
+}
+.pv-bar { display: flex; align-items: center; gap: 0.25rem; padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--line); background: var(--bg-2); font: 0.72rem var(--mono); color: var(--tx-4); }
+.pv-bar .fw { margin-right: auto; padding-left: 0.2rem; }
+.pv-langs { position: relative; display: flex; }
+.pv-langs span { position: relative; z-index: 1; width: 2.1rem; text-align: center; padding: 0.15rem 0; border-radius: 0.25rem; transition: color 0.3s; text-transform: uppercase; }
+.pv-langs span.on { color: var(--tx); }
+.pv-langs i { position: absolute; top: 0; bottom: 0; width: 2.1rem; border-radius: 0.25rem; background: var(--bg-3); border: 1px solid var(--line-2); transition: transform 0.45s var(--ease); }
+.pv-out { display: grid; place-items: center; padding: 1.5rem 1rem; min-height: 7.5rem; }
+.pv-out > .ui { transition: width 0.45s var(--ease); }
+
+.ui { font-family: var(--font); }
+.ui-btn {
+  display: inline-flex; align-items: center; gap: 0.5rem; white-space: nowrap;
+  height: 2.5rem; padding-inline: 1.1rem; border-radius: 0.5rem;
+  background: var(--tx); color: var(--bg); font-weight: 550; font-size: 0.95rem;
+}
+.ui-btn.ghost { background: transparent; color: var(--tx); border: 1px solid var(--line-2); }
+.ui-btn svg, .ui-toast svg, .ui-badge svg, .ui-msg svg, .ui-empty svg, .ui-dialog svg { width: 16px; height: 16px; flex: none; }
+.ui-link { color: var(--accent); text-decoration: underline; text-underline-offset: 0.22em; text-decoration-color: color-mix(in oklch, var(--accent) 45%, transparent); white-space: nowrap; }
+.ui-h { font-size: 1.6rem; font-weight: 600; letter-spacing: -0.025em; white-space: nowrap; }
+.ui-toast { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.7rem 0.95rem; border-radius: 0.55rem; background: var(--bg-2); border: 1px solid var(--line-2); box-shadow: var(--shadow); white-space: nowrap; font-size: 0.92rem; }
+.ui-toast.err svg { color: var(--err); }
+.ui-toast.ok svg { color: var(--ok); }
+.ui-badge { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.3rem 0.7rem; border-radius: 999px; background: var(--accent-low); color: color-mix(in oklch, var(--accent) 70%, var(--tx)); font-size: 0.86rem; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ui-meta { color: var(--tx-3); font-size: 0.92rem; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ui-total { font-size: 1.15rem; font-weight: 600; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ui-empty, .ui-dialog { display: inline-flex; flex-direction: column; align-items: center; gap: 0.5rem; color: var(--tx-2); white-space: nowrap; }
+.ui-empty svg, .ui-dialog svg { width: 22px; height: 22px; color: var(--tx-4); }
+.ui-dialog b { font-size: 1.1rem; color: var(--tx); font-weight: 600; }
+.ui-toggle { display: inline-flex; align-items: center; gap: 0.65rem; white-space: nowrap; }
+.ui-toggle i { width: 2.2rem; height: 1.3rem; border-radius: 999px; background: var(--accent); position: relative; }
+.ui-toggle i::after { content: ''; position: absolute; top: 3px; right: 3px; width: calc(1.3rem - 6px); aspect-ratio: 1; border-radius: 50%; background: var(--accent-ink); }
+.ui-field { display: grid; gap: 0.4rem; width: min(17rem, 100%); }
+.ui-in { height: 2.4rem; padding: 0 0.75rem; display: flex; align-items: center; border-radius: 0.45rem; border: 1px solid var(--err); background: var(--bg-2); font-size: 0.92rem; color: var(--tx-2); overflow: hidden; white-space: nowrap; }
+.ui-msg { display: flex; align-items: center; gap: 0.4rem; color: var(--err); font-size: 0.85rem; }
+[lang='ja'] { line-break: strict; }
+
+/* ---------- shared sections ---------- */
+.wrap { max-width: 76rem; margin-inline: auto; padding-inline: 1.25rem; }
+.sec { padding-block: clamp(4.5rem, 10vw, 8rem); }
+.sec h2 { font-size: clamp(1.9rem, 3.6vw, 2.9rem); }
+.sec .lede2 { margin-top: 1rem; color: var(--tx-2); max-width: 36rem; font-size: 1.05rem; }
+.rows { margin-top: 3rem; border-top: 1px solid var(--line); }
+.rows > div { display: grid; grid-template-columns: minmax(0, 22rem) minmax(0, 1fr); gap: 1rem 3rem; padding: 1.4rem 0; border-bottom: 1px solid var(--line); }
+.rows h3 { font-size: 1.12rem; letter-spacing: -0.015em; font-weight: 600; }
+.rows p { color: var(--tx-2); max-width: 38rem; }
+.rows code { font-size: 0.88em; color: var(--tx); }
+@media (max-width: 760px) { .rows > div { grid-template-columns: 1fr; gap: 0.4rem; } }
+.closing { text-align: center; }
+.closing h2 { margin-bottom: 1.75rem; }
+.closing .actions { justify-content: center; }
+.foot { margin-top: 3rem; color: var(--tx-4); font-size: 0.85rem; }
+.foot a { text-underline-offset: 0.2em; }
+
+/* =========================================================
+   A · Scroll story
+   ========================================================= */
+.a-scrolly { position: relative; height: calc(var(--steps) * 85vh + 100vh); }
+.a-sticky {
+  position: sticky; top: 3.75rem; height: calc(100vh - 3.75rem);
+  max-width: 76rem; margin-inline: auto; padding: clamp(1.5rem, 4vh, 3rem) 1.25rem;
+  display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr); gap: clamp(2rem, 4vw, 4rem); align-items: center;
+}
+.a-copy h1 { font-size: clamp(2.3rem, 4.3vw, 3.9rem); font-weight: 650; letter-spacing: -0.038em; }
+.a-copy .lede { margin-top: 1.25rem; font-size: 1.08rem; color: var(--tx-2); max-width: 31rem; }
+.a-copy .actions { margin-top: 1.75rem; }
+.a-copy .install { margin-top: 0.9rem; }
+.a-chapter { margin-top: clamp(1.75rem, 5vh, 3.25rem); display: grid; grid-template-columns: 2px 1fr; gap: 0 1rem; max-width: 30rem; }
+.a-chapter .rail { grid-row: span 2; background: var(--line); border-radius: 2px; position: relative; overflow: hidden; }
+.a-chapter .rail i { position: absolute; inset: 0; background: var(--accent); transform-origin: top; transform: scaleY(var(--prog, 0.2)); transition: transform 0.6s var(--ease); }
+.a-chapter .cap-t { font-weight: 600; font-size: 1.05rem; letter-spacing: -0.01em; }
+.a-chapter .cap-b { color: var(--tx-3); font-size: 0.95rem; margin-top: 0.2rem; min-height: 3em; }
+.a-chapter .swap { transition: opacity 0.3s, filter 0.3s, transform 0.4s var(--ease); }
+.a-chapter .swap.hide { opacity: 0; filter: blur(4px); transform: translateY(4px); }
+/* three layouts, morphed with view transitions:
+   0 = component + render, 1 = + translations, 2 = translations | Vue + React */
+.a-stage {
+  display: grid; gap: 0.75rem; min-width: 0; align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: 'vue vue' 'pvv pvv';
+}
+.a-stage[data-mode='1'] { grid-template-areas: 'trans trans' 'vue vue' 'pvv pvv'; }
+.a-stage[data-mode='2'] { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); grid-template-areas: 'trans vue' 'trans react' 'pvv pvr'; }
+#aTrans { grid-area: trans; view-transition-name: a-trans; }
+#aVue { grid-area: vue; view-transition-name: a-vue; }
+#aReact { grid-area: react; view-transition-name: a-react; }
+#aPvVue { grid-area: pvv; view-transition-name: a-pvv; }
+#aPvReact { grid-area: pvr; view-transition-name: a-pvr; }
+#aTrans { align-self: start; }
+.a-stage[data-mode='0'] :is(#aTrans, #aReact, #aPvReact), .a-stage[data-mode='1'] :is(#aReact, #aPvReact) { display: none; }
+.a-stage .ed-body { font-size: 12.5px; }
+.a-stage .pv-out { min-height: 6.5rem; padding-block: 1.1rem; }
+@media (max-width: 900px) {
+  .a-stage, .a-stage[data-mode] { grid-template-columns: minmax(0, 1fr); grid-template-areas: 'trans' 'vue' 'react' 'pvv' 'pvr'; }
+}
+::view-transition-group(*) { animation-duration: 0.65s; animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+.scroll-hint { position: absolute; bottom: 1.2rem; left: 50%; translate: -50% 0; font: 0.75rem var(--mono); color: var(--tx-4); display: flex; gap: 0.5rem; align-items: center; transition: opacity 0.4s; }
+.scroll-hint svg { width: 14px; animation: nudge 1.6s var(--ease) infinite; }
+@keyframes nudge { 50% { transform: translateY(3px); } }
+@media (max-width: 900px) {
+  .a-scrolly { height: auto; }
+  .a-sticky { position: static; height: auto; grid-template-columns: 1fr; }
+  .a-chapter { display: none; }
+  .scroll-hint { display: none; }
+}
+
+.book { margin-top: 3rem; display: grid; grid-template-columns: minmax(0, 19rem) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+.book-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.book-list button {
+  all: unset; box-sizing: border-box; cursor: pointer; position: relative;
+  display: flex; justify-content: space-between; gap: 1rem; width: 100%;
+  padding: 0.5rem 0.25rem; border-bottom: 1px solid var(--line);
+  font-size: 0.93rem; color: var(--tx-3); transition: color 0.2s;
+}
+.book-list button:hover { color: var(--tx); }
+.book-list button[aria-current='true'] { color: var(--tx); }
+.book-list button small { font: 0.7rem var(--mono); color: var(--tx-4); padding-top: 0.2rem; }
+.book-list button[aria-current='true'] small { color: var(--accent); }
+.book-list button::after { content: ''; position: absolute; left: 0; bottom: -1px; height: 1px; width: 100%; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+.book-list button[aria-current='true']::after { animation: fill var(--dur, 4.5s) linear forwards; }
+.book.paused .book-list button[aria-current='true']::after { animation-play-state: paused; }
+@keyframes fill { to { transform: scaleX(1); } }
+.book-stage { display: grid; gap: 0.75rem; min-width: 0; position: sticky; top: 5rem; }
+.seg { display: inline-flex; padding: 3px; border: 1px solid var(--line); border-radius: 0.5rem; background: var(--bg-2); gap: 2px; justify-self: start; }
+.seg button { all: unset; cursor: pointer; padding: 0.3rem 0.8rem; border-radius: 0.35rem; font-size: 0.84rem; color: var(--tx-3); }
+.seg button[aria-pressed='true'] { background: var(--bg-3); color: var(--tx); box-shadow: 0 0 0 1px var(--line-2) inset; }
+.book-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr); gap: 0.75rem; }
+@media (max-width: 900px) { .book { grid-template-columns: 1fr; } .book-stage { position: static; } .book-list { display: flex; overflow-x: auto; border: 0; gap: 0.25rem; } .book-list button { white-space: nowrap; border: 1px solid var(--line); border-radius: 0.4rem; } .book-two { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   B · The type is the page
+   ========================================================= */
+.b-dock { position: relative; height: 280vh; }
+.b-sticky {
+  position: sticky; top: 3.75rem; height: calc(100vh - 3.75rem);
+  --p: 0; --ty: 0px;
+}
+.b-head { position: absolute; left: 1.25rem; right: 1.25rem; top: clamp(1.5rem, 5vh, 3.5rem); margin-inline: auto; text-align: center; max-width: 52rem; opacity: calc(1 - var(--p) * 2.6); transform: translateY(calc(var(--p) * -60px)); filter: blur(calc(var(--p) * 10px)); }
+.b-head h1 { font-size: clamp(2.3rem, 5vw, 4.4rem); font-weight: 650; letter-spacing: -0.04em; }
+.b-head h1 span { color: var(--tx-3); }
+.b-head .lede { margin: 1.1rem auto 0; color: var(--tx-2); font-size: 1.08rem; max-width: 36rem; }
+.b-head .actions { justify-content: center; margin-top: 1.6rem; }
+.b-mid-cap { position: absolute; top: clamp(1.5rem, 6vh, 4rem); left: 0; right: 0; text-align: center; opacity: calc((var(--p) - 0.42) * 4); transform: translateY(calc((1 - min(1, var(--p) * 1.6)) * 30px)); pointer-events: none; padding-inline: 1.25rem; }
+.b-mid-cap h2 { font-size: clamp(1.7rem, 3.2vw, 2.6rem); }
+.b-mid-cap p { color: var(--tx-2); margin-top: 0.6rem; }
+.b-trio {
+  position: absolute; top: 0; left: 50%; translate: -50% 0;
+  width: min(76rem, calc(100% - 2.5rem));
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr); gap: 0.85rem; align-items: start;
+  transform: translateY(var(--ty));
+}
+.b-trio > .b-side { opacity: calc((var(--p) - 0.3) * 3); filter: blur(calc(max(0, 0.6 - var(--p)) * 16px)); }
+.b-trio > .b-side.l { transform: translateX(calc((1 - min(1, var(--p) * 1.7)) * 80px)); }
+.b-trio > .b-side.r { transform: translateX(calc((1 - min(1, var(--p) * 1.7)) * -80px)); }
+.b-center { display: grid; gap: 0.75rem; transform-origin: 50% 0; transform: scale(calc(1.38 - min(1, var(--p) * 1.7) * 0.38)); }
+.b-center .ed-body { font-size: 13px; }
+.b-side .ed-body { font-size: 12px; }
+.b-side .pv-out { min-height: 5rem; padding: 0.9rem; }
+.b-side .ui-h { font-size: 1.25rem; }
+@media (max-width: 1000px) {
+  .b-dock { height: auto; }
+  .b-sticky { position: static; height: auto; display: block; padding: 2.5rem 1.25rem; --p: 1 !important; }
+  .b-head { position: static; opacity: 1; transform: none; filter: none; margin: 0 auto 2.5rem; }
+  .b-mid-cap { display: none; }
+  .b-trio { position: static; translate: none; width: auto; grid-template-columns: 1fr; transform: none; }
+  .b-trio > .b-side { opacity: 1; filter: none; transform: none !important; }
+  .b-center { transform: none; order: -1; }
+}
+
+.zod { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: start; }
+.zplay { display: grid; gap: 0.85rem; }
+.zform { display: grid; gap: 1rem; padding: 1.4rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--bg-2); }
+.zform label { display: grid; gap: 0.35rem; font-size: 0.86rem; color: var(--tx-2); }
+.zform label > span { display: flex; justify-content: space-between; }
+.zform label > span code { color: var(--tx-4); font-size: 0.78rem; }
+.zform input {
+  font: 0.95rem var(--font); color: var(--tx); height: 2.5rem; padding: 0 0.8rem;
+  border-radius: 0.45rem; border: 1px solid var(--line-2); background: var(--bg); caret-color: var(--accent);
+  transition: border-color 0.2s;
+}
+.zform input:focus { outline: none; border-color: var(--accent); }
+.zform input[aria-invalid='true'] { border-color: var(--err); }
+.zform .ui-msg { min-height: 1.3rem; transition: opacity 0.25s, filter 0.25s; }
+.zform .ui-msg:empty { opacity: 0; }
+.zrow { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.zrow small { color: var(--tx-4); font-size: 0.8rem; }
+.ed .ln.hl > div { background: color-mix(in oklch, var(--err) 12%, transparent); }
+@media (max-width: 900px) { .zod { grid-template-columns: 1fr; } }
+
+.b-safety { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
+@media (max-width: 900px) { .b-safety { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   C · Extract every string
+   ========================================================= */
+.c-hero { padding-block: clamp(2.5rem, 7vh, 5rem) clamp(3rem, 8vw, 6rem); }
+.c-top { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: 1.5rem 4rem; align-items: end; }
+.c-top h1 { font-size: clamp(2.3rem, 4.6vw, 4.1rem); font-weight: 650; letter-spacing: -0.038em; }
+.c-top .lede { color: var(--tx-2); font-size: 1.06rem; }
+.c-top .actions { margin-top: 1.4rem; }
+@media (max-width: 900px) { .c-top { grid-template-columns: 1fr; } }
+.c-split { margin-top: clamp(2.5rem, 6vh, 4rem); display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr); gap: 1rem; align-items: start; }
+@media (max-width: 900px) { .c-split { grid-template-columns: 1fr; } }
+.mock { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--bg-2); box-shadow: var(--shadow); overflow: hidden; }
+.mock-bar { display: flex; align-items: center; gap: 0.75rem; height: 2.4rem; padding-inline: 0.85rem; border-bottom: 1px solid var(--line); font: 0.76rem var(--mono); color: var(--tx-4); }
+.mock-bar .dots { display: flex; gap: 6px; }
+.mock-bar .dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--bg-3); border: 1px solid var(--line-2); }
+.mock-bar .url { flex: 1; text-align: center; }
+.mock-bar .pv-langs { font-size: 0.7rem; }
+.mock-body { padding: clamp(1.1rem, 2.5vw, 1.75rem); display: grid; gap: 1.1rem; background: var(--bg); }
+.mock-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.mock-logo { display: flex; align-items: center; gap: 0.5rem; font-weight: 650; letter-spacing: -0.02em; }
+.mock-logo svg { width: 20px; height: 20px; color: var(--accent); }
+.mock-head .right { display: flex; align-items: center; gap: 1rem; }
+.mock .ui-h { font-size: clamp(1.5rem, 2.6vw, 2rem); }
+.mock-card { display: grid; grid-template-columns: auto 1fr auto; gap: 1rem; align-items: center; padding: 1rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--bg-2); }
+.mock-thumb { width: 3.2rem; height: 3.2rem; border-radius: 0.45rem; background: linear-gradient(135deg, oklch(60% 0.12 300), oklch(55% 0.1 230)); display: grid; place-items: center; color: oklch(98% 0.01 300); }
+.mock-thumb svg { width: 22px; height: 22px; }
+@media (max-width: 520px) { .mock-card { grid-template-columns: auto 1fr; } .mock-card .ui-total { grid-column: 1 / -1; } }
+.mock-card .lines { display: grid; gap: 0.15rem; min-width: 0; }
+.mock-card .sku { font: 0.78rem var(--mono); color: var(--tx-4); }
+.mock-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+.mock .ui-toast { box-shadow: none; }
+[data-str] { position: relative; transition: outline-color 0.3s; outline: 1.5px dashed transparent; outline-offset: 4px; border-radius: 0.3rem; }
+[data-str].pick { outline-color: var(--accent); }
+[data-str].done { cursor: pointer; }
+[data-str].done:hover { outline-color: color-mix(in oklch, var(--accent) 50%, transparent); }
+.morph { display: inline-block; transition: filter 0.28s, opacity 0.28s, transform 0.4s var(--ease); }
+.morph.out { filter: blur(6px); opacity: 0; transform: translateY(3px); }
+.fly {
+  position: fixed; z-index: 50; pointer-events: none; padding: 0.2rem 0.5rem; border-radius: 0.35rem;
+  background: var(--accent); color: var(--accent-ink); font: 500 13px var(--mono); white-space: nowrap;
+  box-shadow: 0 12px 30px -8px color-mix(in oklch, var(--accent) 60%, transparent);
+}
+.fold { color: var(--tx-4); background: var(--bg-3); border-radius: 0.25rem; padding: 0 0.3rem; margin: 0 0.15rem; }
+.c-ed .ed-body { max-height: 26.5rem; overflow-y: auto; }
+.c-note { margin-top: 0.9rem; color: var(--tx-4); font-size: 0.85rem; display: flex; gap: 0.5rem; align-items: center; }
+.c-note svg { width: 14px; height: 14px; }
+
+.c-fw { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-top: 2.5rem; }
+@media (max-width: 900px) { .c-fw { grid-template-columns: 1fr; } }
+
+.ledger-wrap { margin-top: 2.5rem; overflow-x: auto; border-top: 1px solid var(--line); }
+.ledger { width: 100%; border-collapse: collapse; font-size: 0.92rem; min-width: 52rem; }
+.ledger th { text-align: left; font: 500 0.72rem var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--tx-4); padding: 0.75rem 0.75rem 0.75rem 0; border-bottom: 1px solid var(--line); }
+.ledger th .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 0.45rem; vertical-align: 0.05em; }
+.ledger td { padding: 0.6rem 0.75rem 0.6rem 0; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--tx-2); transition: background 0.5s; font-variant-numeric: tabular-nums; }
+.ledger td:first-child { color: var(--tx); font-weight: 500; }
+.ledger td small { display: block; font: 0.7rem var(--mono); color: var(--tx-4); font-weight: 400; margin-top: 0.1rem; }
+.ledger tr.lit td { background: color-mix(in oklch, var(--accent) 7%, transparent); }
+.ledger td.de { color: color-mix(in oklch, var(--de) 55%, var(--tx-2)); }
+.ledger td.es { color: color-mix(in oklch, var(--es) 55%, var(--tx-2)); }
+.ledger td.ja { color: color-mix(in oklch, var(--ja) 55%, var(--tx-2)); }
+.tick { display: inline-block; transition: filter 0.25s, opacity 0.25s; }
+
+/* ---------- prototype switcher (not part of the design) ---------- */
+.proto-bar {
+  position: fixed; z-index: 100; left: 50%; bottom: 1rem; translate: -50% 0;
+  display: flex; align-items: center; gap: 0.25rem; padding: 0.3rem;
+  border-radius: 999px; background: #fff; color: #111; font: 600 13px system-ui, sans-serif;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+.proto-bar button { all: unset; cursor: pointer; width: 2rem; height: 2rem; display: grid; place-items: center; border-radius: 50%; }
+.proto-bar button:hover { background: #eee; }
+.proto-bar span { padding-inline: 0.6rem; white-space: nowrap; }
+.proto-bar span em { font-style: normal; color: #777; font-weight: 500; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="#" aria-label="lang home">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="1.5" y="1.5" width="21" height="21" rx="6" fill="var(--accent)"/><path d="M8 7.5c-1.5 1.2-2.2 2.7-2.2 4.5s.7 3.3 2.2 4.5M16 7.5c1.5 1.2 2.2 2.7 2.2 4.5s-.7 3.3-2.2 4.5M10.6 15.8l2.8-7.6" stroke="var(--accent-ink)" stroke-width="1.8" stroke-linecap="round"/></svg>
+    lang
+  </a>
+  <nav>
+    <a href="#" class="hide-sm">Docs</a>
+    <a href="#" class="hide-sm">Vue</a>
+    <a href="#" class="hide-sm">React</a>
+    <div class="seg" id="cPageLang" hidden role="group" aria-label="Page language"></div>
+    <a class="button" href="https://github.com/falcondev-oss/lang" style="height:2.2rem">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.05-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5Z"/></svg>
+      GitHub
+    </a>
+  </nav>
+</header>
+
+<!-- ======================= A · Scroll story ======================= -->
+<main class="variant" id="va" data-name="Scroll story">
+  <section class="a-scrolly" style="--steps: 5">
+    <div class="a-sticky">
+      <div class="a-copy">
+        <h1>Type-safe i18n where the English text is the key.</h1>
+        <p class="lede">Write every text once, right next to its translations, and read it back fully typed. No codegen, no JSON files, no string paths. For Vue, React and React Native.</p>
+        <div class="actions">
+          <a class="button primary" href="#">Get started</a>
+          <a class="button" href="https://github.com/falcondev-oss/lang">GitHub</a>
+        </div>
+        <div class="install" data-copy="pnpm add @falcondev-oss/lang-core"><b>$</b>pnpm add @falcondev-oss/lang-core<button aria-label="Copy install command"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+        <div class="a-chapter" aria-live="polite">
+          <div class="rail"><i></i></div>
+          <p class="cap-t swap"></p>
+          <p class="cap-b swap"></p>
+        </div>
+      </div>
+      <div class="a-stage" id="aStage" data-mode="0">
+        <div class="ed" id="aTrans"></div>
+        <div class="ed" id="aVue"></div>
+        <div class="ed" id="aReact"></div>
+        <div class="pv" id="aPvVue"></div>
+        <div class="pv" id="aPvReact"></div>
+      </div>
+      <div class="scroll-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M6 13l6 6 6-6"/></svg>scroll</div>
+    </div>
+  </section>
+
+  <section class="sec wrap" id="aBook">
+    <h2>Twenty texts, one pattern.</h2>
+    <p class="lede2">Plain strings, texts with parameters, and Zod error messages. Pick one, or let them run.</p>
+    <div class="book">
+      <ol class="book-list" id="aList"></ol>
+      <div class="book-stage">
+        <div class="seg" id="aFw" role="group" aria-label="Framework"><button aria-pressed="true" data-fw="vue">Vue</button><button aria-pressed="false" data-fw="react">React</button></div>
+        <div class="ed" id="bkTrans"></div>
+        <div class="book-two"><div class="ed" id="bkUse"></div><div class="pv" id="bkPv"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <h2>What you stop doing.</h2>
+    <div class="rows">
+      <div><h3>Inventing keys</h3><p>The English text is the key. <code>text['Save changes']</code> reads like the UI it renders, and a custom key is there when a text gets long.</p></div>
+      <div><h3>Shipping half-translated screens</h3><p>Every <code>t()</code> must list every language. A missing one is a type error at the line that forgot it, not a blank button in production.</p></div>
+      <div><h3>Opening JSON files to check a word</h3><p>Hover any text in your editor and its type lists every translation. Translations live next to the code that uses them.</p></div>
+      <div><h3>Writing a second message system for Zod</h3><p><code>text(validation.tooLong)</code> is a valid Zod error message, typed against the issue, translated at parse time.</p></div>
+    </div>
+  </section>
+
+  <section class="sec wrap closing">
+    <h2>Add it in one line.</h2>
+    <div class="actions">
+      <div class="install"><b>$</b>pnpm add @falcondev-oss/lang-core @falcondev-oss/lang-vue<button aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+      <a class="button primary" href="#">Read the guide</a>
+    </div>
+    <p class="foot">MIT licensed. Built by <a href="https://falcondev.io">falconDev</a>. API design by Julian Meinking.</p>
+  </section>
+</main>
+
+<!-- ======================= B · The type is the page ======================= -->
+<main class="variant" id="vb" data-name="Docked code">
+  <section class="b-dock" id="bDock">
+    <div class="b-sticky" id="bSticky">
+      <div class="b-head">
+        <h1>Write it in English. <span>Ship it in every language.</span></h1>
+        <p class="lede">Type-safe i18n where the source text is the key. Every translation sits next to it, and TypeScript knows all of them.</p>
+        <div class="actions">
+          <a class="button primary" href="#">Get started</a>
+          <div class="install"><b>$</b>pnpm add @falcondev-oss/lang-core<button aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div>
+        </div>
+      </div>
+      <div class="b-mid-cap"><h2>One file. Vue and React read it.</h2><p>Same keys, same types, one hook each.</p></div>
+      <div class="b-trio">
+        <div class="b-side l"><div class="ed" id="bVue"></div><div class="pv" id="bPvVue" style="margin-top:.75rem"></div></div>
+        <div class="b-center"><div class="ed" id="bTrans"></div></div>
+        <div class="b-side r"><div class="ed" id="bReact"></div><div class="pv" id="bPvReact" style="margin-top:.75rem"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <div class="zod">
+      <div>
+        <h2>Zod errors in your reader’s language.</h2>
+        <p class="lede2">A text function is already a valid Zod error message. Zod passes the check’s values, the parameter type is checked against the issue, and the language is read when the schema parses.</p>
+        <p class="lede2" style="color:var(--tx-3)">Type into the form. Switch the language. The schema is the one on the right, shared by app and backend.</p>
+      </div>
+      <div class="zplay">
+        <form class="zform" id="zForm" novalidate>
+          <div class="zrow"><div class="seg" id="zLang" role="group" aria-label="Language"></div><small>live, nothing is sent</small></div>
+          <label><span>Name <code>max 50</code></span><input name="name" autocomplete="off" value="" /><p class="ui-msg" aria-live="polite"></p></label>
+          <label><span>Email</span><input name="email" autocomplete="off" value="mia@example" /><p class="ui-msg" aria-live="polite"></p></label>
+          <label><span>Password <code>min 8</code></span><input name="password" type="password" autocomplete="off" value="hunter2" /><p class="ui-msg" aria-live="polite"></p></label>
+        </form>
+        <div class="ed" id="zSchema"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <div class="b-safety">
+      <div class="ed" id="bSafe"></div>
+      <div>
+        <h2>Forget a language, and it does not compile.</h2>
+        <p class="lede2">The second argument of <code>t()</code> must contain every other language and nothing else. The error lands on the line that forgot it.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec wrap closing">
+    <h2>No codegen. No JSON. No string paths.</h2>
+    <div class="actions"><a class="button primary" href="#">Read the guide</a><a class="button" href="https://github.com/falcondev-oss/lang">GitHub</a></div>
+    <p class="foot">MIT licensed. Built by <a href="https://falcondev.io">falconDev</a>.</p>
+  </section>
+</main>
+
+<!-- ======================= C · Extract every string ======================= -->
+<main class="variant" id="vc" data-name="Extract every string">
+  <section class="wrap c-hero">
+    <div class="c-top">
+      <h1 data-i="h1">Every string in your app, translated and type-checked.</h1>
+      <div>
+        <p class="lede" data-i="lede">Wrap the text you already wrote in <code>t()</code> and add the other languages right there. The English stays the key, TypeScript checks the rest.</p>
+        <div class="actions"><a class="button primary" href="#" data-i="cta">Get started</a><a class="button" href="https://github.com/falcondev-oss/lang">GitHub</a></div>
+      </div>
+    </div>
+    <div class="c-split">
+      <div>
+        <div class="mock" id="cMock">
+          <div class="mock-bar"><span class="dots"><i></i><i></i><i></i></span><span class="url">kestrel.app/orders</span><span class="pv-langs" id="cMockLangs"></span></div>
+          <div class="mock-body">
+            <div class="mock-head">
+              <span class="mock-logo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 18 12 4l9 14-9-4-9 4Z"/></svg>Kestrel</span>
+              <span class="right"><span data-str="unread" class="ui ui-badge"></span><span data-str="Dark mode" class="ui ui-toggle"></span></span>
+            </div>
+            <div><span data-str="greeting" class="ui ui-h"></span></div>
+            <div><span data-str="Your order has shipped" class="ui ui-toast ok"></span></div>
+            <div class="mock-card">
+              <span class="mock-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg></span>
+              <span class="lines"><span class="sku">KS-2041 · 3×</span><span data-str="editedAgo" class="ui ui-meta"></span></span>
+              <span data-str="total" class="ui ui-total"></span>
+            </div>
+            <div class="mock-actions"><span data-str="Add to cart" class="ui ui-btn"></span><span data-str="I need help" class="ui ui-btn ghost"></span></div>
+          </div>
+        </div>
+        <p class="c-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 9l6 3-6 3V9Z"/><circle cx="12" cy="12" r="10"/></svg><span data-i="note">Click any text in the app to jump to its translation.</span></p>
+      </div>
+      <div class="ed c-ed" id="cEd"></div>
+    </div>
+  </section>
+
+  <section class="sec wrap">
+    <h2 data-i="fwH">Vue or React. Same file.</h2>
+    <p class="lede2" data-i="fwP">The Vue adapter returns a computed ref, the React adapter a hook under a provider. Both read the same translation tree.</p>
+    <div class="c-fw"><div class="ed" id="cVue"></div><div class="ed" id="cReact"></div></div>
+  </section>
+
+  <section class="sec wrap">
+    <h2 data-i="ledH">Twenty texts, four languages.</h2>
+    <p class="lede2" data-i="ledP">Plain texts, texts with parameters, and Zod messages. Parameters are plain code, so Intl formatting works the way you know it.</p>
+    <div class="ledger-wrap"><table class="ledger" id="cLedger"></table></div>
+  </section>
+
+  <section class="sec wrap closing">
+    <h2 data-i="close">This page switches language with the same library.</h2>
+    <div class="actions"><a class="button primary" href="#" data-i="cta">Get started</a><div class="install"><b>$</b>pnpm add @falcondev-oss/lang-core<button aria-label="Copy"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></div></div>
+    <p class="foot">MIT licensed. Built by <a href="https://falcondev.io">falconDev</a>.</p>
+  </section>
+</main>
+
+<div class="proto-bar" role="toolbar" aria-label="Prototype variant">
+  <button id="pPrev" aria-label="Previous variant">←</button>
+  <span id="pLabel"></span>
+  <button id="pNext" aria-label="Next variant">→</button>
+</div>
+
+<script>
+// ============================================================
+// Data: the phrase pool
+// ============================================================
+const LANGS = ['en', 'de', 'es', 'ja']
+const OTHER = ['de', 'es', 'ja']
+const money = (n, l) => new Intl.NumberFormat({ en: 'en-US', de: 'de-DE', es: 'es-ES', ja: 'ja-JP' }[l], { style: 'currency', currency: 'EUR' }).format(n)
+
+const P = [
+  { key: 'I need help', group: 'support', ui: 'btn', icon: 'help', en: 'I need help', de: 'Ich brauche Hilfe', es: 'Necesito ayuda', ja: '助けが必要です' },
+  { key: 'Save changes', group: 'editor', ui: 'btn', en: 'Save changes', de: 'Änderungen speichern', es: 'Guardar cambios', ja: '変更を保存' },
+  { key: 'Sign in', group: 'auth', ui: 'btn', en: 'Sign in', de: 'Anmelden', es: 'Iniciar sesión', ja: 'ログイン' },
+  { key: 'Forgot your password?', group: 'auth', ui: 'link', en: 'Forgot your password?', de: 'Passwort vergessen?', es: '¿Olvidaste tu contraseña?', ja: 'パスワードをお忘れですか？' },
+  { key: 'Add to cart', group: 'shop', ui: 'btn', icon: 'cart', en: 'Add to cart', de: 'In den Warenkorb', es: 'Añadir al carrito', ja: 'カートに追加' },
+  { key: 'Something went wrong', group: 'errors', ui: 'toast-err', en: 'Something went wrong', de: 'Etwas ist schiefgelaufen', es: 'Algo salió mal', ja: '問題が発生しました' },
+  { key: 'Try again', group: 'errors', ui: 'btn2', en: 'Try again', de: 'Erneut versuchen', es: 'Reintentar', ja: 'もう一度試す' },
+  { key: 'Delete this entry?', group: 'entries', ui: 'dialog', en: 'Delete this entry?', de: 'Diesen Eintrag löschen?', es: '¿Eliminar esta entrada?', ja: 'この項目を削除しますか？' },
+  { key: 'Your order has shipped', group: 'orders', ui: 'toast-ok', en: 'Your order has shipped', de: 'Deine Bestellung ist unterwegs', es: 'Tu pedido está en camino', ja: 'ご注文の商品を発送しました' },
+  { key: 'No results found', group: 'search', ui: 'empty', en: 'No results found', de: 'Keine Ergebnisse gefunden', es: 'No se encontraron resultados', ja: '結果が見つかりません' },
+  { key: 'Dark mode', group: 'settings', ui: 'toggle', en: 'Dark mode', de: 'Dunkelmodus', es: 'Modo oscuro', ja: 'ダークモード' },
+  { key: 'Welcome back', group: 'home', ui: 'h', en: 'Welcome back', de: 'Willkommen zurück', es: 'Bienvenido de nuevo', ja: 'おかえりなさい' },
+  {
+    key: 'greeting', group: 'account', ui: 'h', kind: 'param', sig: 'p: { name: string }', args: '{ name: user.name }', sample: () => ({ name: 'Mia' }),
+    code: { en: '`Hello, ${p.name}`', de: '`Hallo, ${p.name}`', es: '`Hola, ${p.name}`', ja: '`こんにちは、${p.name}さん`' },
+    fn: { en: (p) => `Hello, ${p.name}`, de: (p) => `Hallo, ${p.name}`, es: (p) => `Hola, ${p.name}`, ja: (p) => `こんにちは、${p.name}さん` },
+  },
+  {
+    key: 'unread', group: 'inbox', ui: 'badge', kind: 'param', sig: 'p: { count: number }', args: '{ count: inbox.length }', sample: () => ({ count: 3 }),
+    code: { en: '`${p.count} unread`', de: '`${p.count} ungelesen`', es: '`${p.count} sin leer`', ja: '`未読 ${p.count} 件`' },
+    fn: { en: (p) => `${p.count} unread`, de: (p) => `${p.count} ungelesen`, es: (p) => `${p.count} sin leer`, ja: (p) => `未読 ${p.count} 件` },
+  },
+  {
+    key: 'editedAgo', group: 'activity', ui: 'meta', kind: 'param', sig: 'p: { minutes: number }', args: '{ minutes: 5 }', sample: () => ({ minutes: 5 }),
+    code: { en: '`Edited ${p.minutes} min ago`', de: '`Vor ${p.minutes} Min. bearbeitet`', es: '`Editado hace ${p.minutes} min`', ja: '`${p.minutes}分前に編集`' },
+    fn: { en: (p) => `Edited ${p.minutes} min ago`, de: (p) => `Vor ${p.minutes} Min. bearbeitet`, es: (p) => `Editado hace ${p.minutes} min`, ja: (p) => `${p.minutes}分前に編集` },
+  },
+  {
+    key: 'total', group: 'cart', ui: 'total', kind: 'param', sig: 'p: { sum: number }', args: '{ sum: cart.sum }', sample: () => ({ sum: 1249.5 }),
+    code: { en: "`Total: ${money(p.sum, 'en')}`", de: "`Gesamt: ${money(p.sum, 'de')}`", es: "`Total: ${money(p.sum, 'es')}`", ja: "`合計：${money(p.sum, 'ja')}`" },
+    fn: { en: (p) => `Total: ${money(p.sum, 'en')}`, de: (p) => `Gesamt: ${money(p.sum, 'de')}`, es: (p) => `Total: ${money(p.sum, 'es')}`, ja: (p) => `合計：${money(p.sum, 'ja')}` },
+  },
+  { key: 'invalidEmail', group: 'validation', ui: 'field', kind: 'zod', input: 'mia@example', schema: 'email: z.email({ error: text(validation.invalidEmail) }),', en: 'Invalid email address', de: 'Ungültige E-Mail-Adresse', es: 'Correo electrónico no válido', ja: 'メールアドレスが正しくありません' },
+  {
+    key: 'tooShort', group: 'validation', ui: 'field', kind: 'zod', input: '•••••', sig: 'p: { minimum: number | bigint }', sample: () => ({ minimum: 8 }),
+    schema: 'password: z.string().min(8, { error: text(validation.tooShort) }),',
+    code: { en: '`At least ${p.minimum} characters`', de: '`Mindestens ${p.minimum} Zeichen`', es: '`Al menos ${p.minimum} caracteres`', ja: '`${p.minimum}文字以上で入力してください`' },
+    fn: { en: (p) => `At least ${p.minimum} characters`, de: (p) => `Mindestens ${p.minimum} Zeichen`, es: (p) => `Al menos ${p.minimum} caracteres`, ja: (p) => `${p.minimum}文字以上で入力してください` },
+  },
+  {
+    key: 'tooLong', group: 'validation', ui: 'field', kind: 'zod', input: 'Maria Fernanda Concepción de los Ángeles…', sig: 'p: { maximum: number | bigint }', sample: () => ({ maximum: 50 }),
+    schema: 'name: z.string().max(50, { error: text(validation.tooLong) }),',
+    code: { en: '`At most ${p.maximum} characters`', de: '`Höchstens ${p.maximum} Zeichen`', es: '`Como máximo ${p.maximum} caracteres`', ja: '`${p.maximum}文字以内で入力してください`' },
+    fn: { en: (p) => `At most ${p.maximum} characters`, de: (p) => `Höchstens ${p.maximum} Zeichen`, es: (p) => `Como máximo ${p.maximum} caracteres`, ja: (p) => `${p.maximum}文字以内で入力してください` },
+  },
+  { key: 'required', group: 'validation', ui: 'field', kind: 'zod', input: '', schema: 'name: z.string().min(1, { error: text(validation.required) }),', en: 'Required', de: 'Pflichtfeld', es: 'Obligatorio', ja: '必須項目です' },
+]
+for (const p of P) p.kind ||= 'text'
+const byKey = Object.fromEntries(P.map((p) => [p.key, p]))
+const textOf = (p, l, v) => (p.fn ? p.fn[l](v ?? p.sample()) : p[l])
+
+// ============================================================
+// Code generators
+// ============================================================
+const q = (s) => `'${s}'`
+const isIdent = (k) => /^[A-Za-z_$][\w$]*$/.test(k)
+const access = (p) => (isIdent(p.key) ? `text.${p.key}` : `text[${q(p.key)}]`) + (p.args ? `(${p.args})` : '')
+const TAG = { btn: 'button', btn2: 'button', link: 'a', h: 'h1', 'toast-err': 'Toast', 'toast-ok': 'Toast', dialog: 'h2', empty: 'p', toggle: 'label', badge: 'Badge', meta: 'span', total: 'strong' }
+const cap = (s) => s[0].toUpperCase() + s.slice(1)
+
+function transLines(p, { file = true } = {}) {
+  const obj = p.kind !== 'text'
+  const base = p.sig ? `(${p.sig}) => ${p.code.en}` : q(p.en)
+  const L = []
+  if (file) L.push({ id: 'h', text: p.kind === 'zod' ? '// lang/validation.ts' : '// lang/translations.ts' })
+  L.push({ id: 'o', text: obj ? `export const ${p.group} = {` : `export const ${p.group} = group(` })
+  L.push({ id: 't', text: `  ${obj ? p.key + ': ' : ''}t(${base}, {` })
+  for (const l of OTHER) L.push({ id: l, text: `    ${l}: ${p.sig ? '(p) => ' + p.code[l] : q(p[l])},` })
+  L.push({ id: 'tc', text: '  }),' })
+  L.push({ id: 'oc', text: obj ? '}' : ')' })
+  return L
+}
+function schemaLines(p) {
+  return [
+    { id: 'z0', text: '// schemas.ts, shared by app and backend' },
+    { id: 'z1', text: 'export const signup = z.object({' },
+    { id: 'z2', text: '  ' + p.schema },
+    { id: 'z3', text: '})' },
+  ]
+}
+function vueLines(p, { hard = false } = {}) {
+  if (p.kind === 'zod') return schemaLines(p)
+  const tag = TAG[p.ui]
+  if (hard) return [
+    { id: 'v5', text: '<template>' },
+    { id: 'v6', text: `  <${tag}>${p.en}</${tag}>` },
+    { id: 'v7', text: '</template>' },
+  ]
+  return [
+    { id: 'v1', text: '<script setup lang="ts">' },
+    { id: 'v2', text: `const text = useLang((all) => all.${p.group})` },
+    { id: 'v3', text: '<\/script>' },
+    { id: 'v4', text: '' },
+    { id: 'v5', text: '<template>' },
+    { id: 'v6', text: `  <${tag}>{{ ${access(p)} }}</${tag}>` },
+    { id: 'v7', text: '</template>' },
+  ]
+}
+function reactLines(p) {
+  if (p.kind === 'zod') return schemaLines(p)
+  const tag = TAG[p.ui]
+  return [
+    { id: 'r1', text: `export function ${cap(p.group)}() {` },
+    { id: 'r2', text: `  const text = useLang((all) => all.${p.group})` },
+    { id: 'r3', text: `  return <${tag}>{${access(p)}}</${tag}>` },
+    { id: 'r4', text: '}' },
+  ]
+}
+function hoverType(p) {
+  const v = p.fn ? null : p
+  const head = p.fn ? `(property) ${p.key}: (params: { ${p.sig.slice(5, -2)} }) => string` : `(property) ${q(p.key)}:`
+  if (!v) return head
+  return head + '\n' + LANGS.map((l) => `  | '[${l}]: ${p[l]}'`).join('\n')
+}
+
+// ============================================================
+// Syntax highlighter
+// ============================================================
+const RULES = [
+  ['com', /\/\/.*/y],
+  ['str', /'(?:[^'\\\n]|\\.)*'?|"[^"\n]*"?/y],
+  ['tpl', /`[^`]*`?/y],
+  ['tag', /<\/?[A-Za-z][\w-]*|\/?>/y],
+  ['pun', /\{\{|\}\}/y],
+  ['kw', /\b(?:import|from|export|const|function|return|type)\b(?![:])/y],
+  ['lng', /\b(?:de|es|ja|en)(?=:)/y],
+  ['type', /\b(?:string|number|bigint|boolean)\b/y],
+  ['fn', /[A-Za-z_$][\w$]*(?=\()/y],
+  ['num', /\b\d+(?:\.\d+)?\b/y],
+  ['id', /[A-Za-z_$][\w$]*/y],
+  ['ws', /\s+/y],
+  ['pun', /[^\sA-Za-z_$]/y],
+]
+function tokenize(text) {
+  const lang = (/^\s*(de|es|ja)\s*:/.exec(text) || [])[1]
+  const inTag = /^\s*<script/.test(text)
+  const out = []
+  let i = 0
+  while (i < text.length) {
+    let hit = false
+    for (const [cls, re] of RULES) {
+      re.lastIndex = i
+      const m = re.exec(text)
+      if (m && m[0].length) {
+        let c = cls
+        if (cls === 'str' && lang) c = 'str ' + lang
+        else if (cls === 'str' && inTag) c = 'str attr'
+        else if (cls === 'lng') c = 'lng ' + m[0]
+        if (cls === 'tpl') {
+          // split ${...} so interpolation reads as code
+          const sc = lang ? 'str ' + lang : 'str'
+          const parts = m[0].split(/(\$\{[^}]*\}?)/)
+          let o = i
+          for (const part of parts) {
+            if (!part) continue
+            if (part.startsWith('${')) {
+              out.push({ s: o, e: o + 2, c: 'interp' })
+              const inner = part.slice(2).replace(/\}$/, '')
+              for (const t of tokenize(inner)) out.push({ s: o + 2 + t.s, e: o + 2 + t.e, c: t.c })
+              if (part.endsWith('}')) out.push({ s: o + part.length - 1, e: o + part.length, c: 'interp' })
+            } else out.push({ s: o, e: o + part.length, c: sc })
+            o += part.length
+          }
+        } else out.push({ s: i, e: i + m[0].length, c })
+        i += m[0].length
+        hit = true
+        break
+      }
+    }
+    if (!hit) { out.push({ s: i, e: i + 1, c: 'pun' }); i++ }
+  }
+  return out
+}
+const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c])
+function paint(text, caret = -1, sq = null) {
+  const toks = tokenize(text)
+  let html = ''
+  for (const t of toks) {
+    const cuts = [t.s, t.e]
+    if (caret > t.s && caret < t.e) cuts.push(caret)
+    if (sq) for (const b of sq) if (b > t.s && b < t.e) cuts.push(b)
+    cuts.sort((a, b) => a - b)
+    for (let k = 0; k < cuts.length - 1; k++) {
+      const a = cuts[k], b = cuts[k + 1]
+      if (a === b) continue
+      if (a === caret) html += '<i class="caret"></i>'
+      const inSq = sq && a >= sq[0] && b <= sq[1]
+      const cls = t.c === 'ws' ? '' : 't-' + t.c.replace(' ', ' ')
+      const c2 = (cls ? cls.split(' ').map((x, n) => (n ? x : x)).join(' ') : '') + (inSq ? ' sq' : '')
+      html += c2.trim() ? `<span class="${c2.trim()}">${esc(text.slice(a, b))}</span>` : esc(text.slice(a, b))
+    }
+  }
+  if (caret === text.length) html += '<i class="caret"></i>'
+  return html || ' '
+}
+
+// ============================================================
+// Editor: animated line diff
+// ============================================================
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches
+const ICON = {
+  file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Z"/><path d="M14 3v6h6"/></svg>',
+  help: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></svg>',
+  cart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.6 12.4a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.6L22 7H6"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg>',
+  search: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+  trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg>',
+  inbox: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5h13L22 12v6a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-6Z"/></svg>',
+}
+
+class Editor {
+  constructor(el, { file, fw } = {}) {
+    this.el = el
+    el.innerHTML = `<div class="ed-bar">${ICON.file}<span class="file"></span><span class="fw"></span></div><div class="ed-body"></div><div class="tip"></div>`
+    this.body = el.querySelector('.ed-body')
+    this.tipEl = el.querySelector('.tip')
+    this.recs = []
+    this.gen = 0
+    this.title(file || '', fw || '')
+  }
+  title(file, fw) {
+    const f = this.el.querySelector('.file'), w = this.el.querySelector('.fw')
+    if (f.textContent === file && w.textContent === fw) return
+    f.textContent = file
+    w.textContent = fw
+  }
+  mk(id, text, hidden) {
+    const el = document.createElement('div')
+    el.className = 'ln' + (hidden ? ' out' : '')
+    el.innerHTML = '<div></div>'
+    const r = { id, text, el, inner: el.firstChild, sq: null }
+    this.draw(r)
+    return r
+  }
+  draw(r, caret = -1) { r.inner.innerHTML = paint(r.text, caret, r.sq) }
+  find(id) { return this.recs.find((r) => r.id === id) }
+  // mode: 'type' (keystrokes), 'swap' (blur crossfade per changed line), 'instant'
+  async set(next, mode = 'type', speed = 16) {
+    const gen = ++this.gen
+    if (RM) mode = 'instant'
+    const ids = new Set(next.map((l) => l.id))
+    const leaving = this.recs.filter((r) => !ids.has(r.id))
+    // 1. collapse removed lines
+    if (leaving.length) {
+      for (const r of leaving) r.el.classList.add('out')
+      if (mode !== 'instant') await sleep(mode === 'type' ? 380 : 260)
+      for (const r of leaving) r.el.remove()
+      if (gen !== this.gen) return
+    }
+    // 2. build new order, new lines start empty+collapsed (type) or full (swap)
+    const recs = []
+    const work = []
+    for (const l of next) {
+      let r = this.find(l.id)
+      if (!r) {
+        r = this.mk(l.id, mode === 'type' ? '' : l.text, mode !== 'instant')
+        work.push({ r, to: l.text, fresh: true })
+      } else if (r.text !== l.text) work.push({ r, to: l.text })
+      r.sq = null
+      recs.push(r)
+    }
+    recs.forEach((r) => this.body.appendChild(r.el))
+    this.recs = recs
+    if (mode === 'instant') {
+      for (const w of work) { w.r.text = w.to; w.r.el.classList.remove('out'); this.draw(w.r) }
+      return
+    }
+    // open new lines
+    requestAnimationFrame(() => work.filter((w) => w.fresh).forEach((w) => w.r.el.classList.remove('out')))
+    if (mode === 'swap') {
+      for (const w of work) {
+        if (w.fresh) continue
+        w.r.inner.animate([{ filter: 'blur(5px)', opacity: 0.2 }, { filter: 'blur(0)', opacity: 1 }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' })
+        w.r.text = w.to
+        this.draw(w.r)
+      }
+      await sleep(440)
+      return
+    }
+    for (const w of work) {
+      if (gen !== this.gen) return
+      await this.edit(w.r, w.to, speed, gen)
+    }
+    if (gen === this.gen) for (const r of this.recs) this.draw(r)
+  }
+  async edit(r, to, speed, gen) {
+    const from = r.text
+    let p = 0
+    while (p < from.length && p < to.length && from[p] === to[p]) p++
+    let s = 0
+    while (s < from.length - p && s < to.length - p && from[from.length - 1 - s] === to[to.length - 1 - s]) s++
+    const oldMid = from.slice(p, from.length - s)
+    const newMid = to.slice(p, to.length - s)
+    const ops = []
+    const idx = oldMid ? newMid.indexOf(oldMid) : -1
+    if (oldMid && idx >= 0) {
+      ops.push({ at: p, ins: newMid.slice(0, idx) })
+      ops.push({ at: p + idx + oldMid.length, ins: newMid.slice(idx + oldMid.length) })
+    } else {
+      if (oldMid) ops.push({ at: p, del: oldMid.length })
+      ops.push({ at: p, ins: newMid })
+    }
+    for (const op of ops) {
+      if (op.del) {
+        for (let k = 0; k < op.del; k += 2) {
+          if (gen !== this.gen) return
+          const n = Math.min(2, op.del - k)
+          r.text = r.text.slice(0, op.at) + r.text.slice(op.at + n)
+          // delete from the end of the range backwards
+          this.draw(r, op.at)
+          await sleep(speed * 0.45)
+        }
+      }
+      if (op.ins) {
+        const chars = [...op.ins]
+        let at = op.at
+        for (let k = 0; k < chars.length; k++) {
+          if (gen !== this.gen) return
+          r.text = r.text.slice(0, at) + chars[k] + r.text.slice(at)
+          at += chars[k].length
+          this.draw(r, at)
+          await sleep(chars[k] === ' ' ? speed * 0.5 : speed)
+        }
+      }
+    }
+    r.text = to
+    this.draw(r)
+  }
+  squiggle(id, word) {
+    const r = this.find(id)
+    if (!r) return
+    const a = r.text.indexOf(word)
+    r.sq = a >= 0 ? [a, a + word.length] : null
+    this.draw(r)
+  }
+  clearSquiggles() { for (const r of this.recs) if (r.sq) { r.sq = null; this.draw(r) } }
+  tip(id, html) {
+    const r = this.find(id)
+    if (!r || html == null) { this.tipEl.classList.remove('show'); return }
+    this.tipEl.innerHTML = html
+    const top = r.el.offsetTop + r.el.offsetHeight + 4
+    this.tipEl.style.top = top + 'px'
+    this.tipEl.classList.add('show')
+  }
+  flash(id) { const r = this.find(id); if (r) { r.el.classList.remove('flash'); void r.el.offsetWidth; r.el.classList.add('flash') } }
+}
+
+// ============================================================
+// Preview: renders one phrase, cycles languages
+// ============================================================
+function uiHTML(p, l, v) {
+  const s = esc(textOf(p, l, v))
+  switch (p.ui) {
+    case 'btn': return `<span class="ui ui-btn">${p.icon ? ICON[p.icon] : ''}${s}</span>`
+    case 'btn2': return `<span class="ui ui-btn ghost">${s}</span>`
+    case 'link': return `<span class="ui ui-link">${s}</span>`
+    case 'h': return `<span class="ui ui-h">${s}</span>`
+    case 'toast-err': return `<span class="ui ui-toast err">${ICON.alert}${s}</span>`
+    case 'toast-ok': return `<span class="ui ui-toast ok">${ICON.check}${s}</span>`
+    case 'dialog': return `<span class="ui ui-dialog">${ICON.trash}<b>${s}</b></span>`
+    case 'empty': return `<span class="ui ui-empty">${ICON.search}${s}</span>`
+    case 'toggle': return `<span class="ui ui-toggle"><i></i>${s}</span>`
+    case 'badge': return `<span class="ui ui-badge">${ICON.inbox}${s}</span>`
+    case 'meta': return `<span class="ui ui-meta">${s}</span>`
+    case 'total': return `<span class="ui ui-total">${s}</span>`
+    case 'field': return `<span class="ui ui-field"><span class="ui-in">${esc(p.input)}</span><span class="ui-msg">${ICON.alert}${s}</span></span>`
+  }
+}
+const LANG_NAMES = { en: 'EN', de: 'DE', es: 'ES', ja: 'JA' }
+class Preview {
+  constructor(el, fw = '') {
+    this.el = el
+    el.innerHTML = `<div class="pv-bar"><span class="fw">${fw}</span><span class="pv-langs"><i></i>${LANGS.map((l) => `<span data-l="${l}">${l}</span>`).join('')}</span></div><div class="pv-out"></div>`
+    this.out = el.querySelector('.pv-out')
+    this.pill = el.querySelector('.pv-langs i')
+    this.lang = 'en'
+    this.p = null
+  }
+  render(p, l, animate = true) {
+    const changed = p !== this.p || l !== this.lang
+    this.p = p
+    this.lang = l
+    this.el.querySelectorAll('.pv-langs span').forEach((s) => s.classList.toggle('on', s.dataset.l === l))
+    this.pill.style.transform = `translateX(${LANGS.indexOf(l) * 100}%)`
+    if (!changed && this.out.firstChild) return
+    const old = this.out.firstElementChild
+    const w0 = old ? old.getBoundingClientRect().width : 0
+    this.out.innerHTML = uiHTML(p, l)
+    const nu = this.out.firstElementChild
+    nu.lang = l
+    if (!animate || RM || !old) return
+    const w1 = nu.getBoundingClientRect().width
+    nu.animate([{ filter: 'blur(6px)', opacity: 0, transform: 'translateY(4px)' }, { filter: 'blur(0)', opacity: 1, transform: 'none' }], { duration: 480, easing: 'cubic-bezier(.16,1,.3,1)' })
+    if (w0 && Math.abs(w1 - w0) > 2 && nu.style) nu.animate([{ width: w0 + 'px' }, { width: w1 + 'px' }], { duration: 450, easing: 'cubic-bezier(.16,1,.3,1)' })
+  }
+}
+// cycles a set of previews through the languages in sync
+class Cycler {
+  constructor(previews, ms = 1400) { this.pvs = previews; this.ms = ms; this.i = 0; this.p = null; this.t = null }
+  start(p) { this.p = p; this.i = 0; this.tick(false); clearInterval(this.t); this.t = setInterval(() => this.tick(true), this.ms) }
+  set(p) { this.p = p; this.pvs.forEach((v) => v.render(p, LANGS[this.i % 4])) }
+  hold(l = 'en') { clearInterval(this.t); this.t = null; this.i = LANGS.indexOf(l); this.pvs.forEach((v) => this.p && v.render(this.p, l)) }
+  tick(adv) { if (adv) this.i++; const l = LANGS[this.i % 4]; this.pvs.forEach((v) => v.render(this.p, l)) }
+}
+
+// copy buttons
+document.querySelectorAll('.install button').forEach((b) =>
+  b.addEventListener('click', () => {
+    navigator.clipboard?.writeText(b.parentElement.textContent.replace(/^\$/, '').trim())
+    b.animate([{ transform: 'scale(.85)' }, { transform: 'none' }], { duration: 300 })
+  }),
+)
+const inView = (el, cb, opts) => {
+  const io = new IntersectionObserver((es) => es.forEach((e) => cb(e.isIntersecting)), opts)
+  io.observe(el)
+  return io
+}
+
+// ============================================================
+// Variant A: scroll story + phrasebook
+// ============================================================
+function initA() {
+  const help = byKey['I need help']
+  const trans = new Editor(document.getElementById('aTrans'), { file: 'lang/translations.ts', fw: 'shared' })
+  const vue = new Editor(document.getElementById('aVue'), { file: 'HelpButton.vue', fw: 'Vue' })
+  const react = new Editor(document.getElementById('aReact'), { file: 'HelpButton.tsx', fw: 'React' })
+  const pvV = new Preview(document.getElementById('aPvVue'), 'renders in Vue')
+  const pvR = new Preview(document.getElementById('aPvReact'), 'renders in React')
+  const cyc = new Cycler([pvV, pvR], 1300)
+  const stage = document.getElementById('aStage')
+  const setMode = (m) => {
+    m = String(m)
+    if (stage.dataset.mode === m) return Promise.resolve()
+    if (!document.startViewTransition || RM) { stage.dataset.mode = m; return Promise.resolve() }
+    return document.startViewTransition(() => { stage.dataset.mode = m }).finished
+  }
+  const capT = document.querySelector('#va .cap-t')
+  const capB = document.querySelector('#va .cap-b')
+  const rail = document.querySelector('#va .a-chapter')
+  const hint = document.querySelector('#va .scroll-hint')
+
+  const STEPS = [
+    { t: 'It starts as a string.', b: 'A button in a Vue component, written in English, like you always do.' },
+    { t: 'Wrap it. Translate it right there.', b: 'The English text becomes the key. German, Spanish and Japanese sit on the lines below it.' },
+    { t: 'React reads the same texts.', b: 'Same file, same keys, same types. One hook in Vue, one in React and React Native.' },
+    { t: 'Forget a language, and it does not compile.', b: 'Every t() must list every language. The error points at the line that forgot one.' },
+    { t: 'Hover to read every translation.', b: 'The type of a text lists all languages, so your editor shows them without opening a file.' },
+  ]
+
+  vue.set(vueLines(help, { hard: true }), 'instant')
+  pvV.render(help, 'en', false)
+  pvR.render(help, 'en', false)
+  let cur = -1, target = 0, running = false
+
+  async function enter(i, fast) {
+    const mode = fast ? 'swap' : 'type'
+    capT.classList.add('hide'); capB.classList.add('hide')
+    setTimeout(() => { capT.textContent = STEPS[i].t; capB.textContent = STEPS[i].b; capT.classList.remove('hide'); capB.classList.remove('hide') }, fast ? 0 : 220)
+    rail.style.setProperty('--prog', (i + 1) / STEPS.length)
+    vue.tip(null); trans.clearSquiggles(); trans.tip(null)
+    if (i === 0) {
+      cyc.hold('en')
+      await setMode(0)
+      await vue.set(vueLines(help, { hard: true }), mode)
+      await trans.set([], 'instant')
+    }
+    if (i >= 1) {
+      if (i === 1 && stage.dataset.mode === '2') await setMode(1)
+      await vue.set(vueLines(help), mode, 22)
+      if (stage.dataset.mode === '0') { await trans.set([], 'instant'); await setMode(1) }
+      await trans.set(transLines(help), mode, 20)
+      if (!cyc.t) cyc.start(help)
+    }
+    if (i >= 2) {
+      if (stage.dataset.mode !== '2') {
+        // React gets the same story: the hardcoded string first, then the wrap
+        await react.set(fast ? reactLines(help) : [
+          { id: 'r1', text: 'export function Support() {' },
+          { id: 'r3', text: '  return <button>I need help</button>' },
+          { id: 'r4', text: '}' },
+        ], 'instant')
+        await setMode(2)
+      }
+      await react.set(reactLines(help), mode, 22)
+    }
+    if (i === 3) {
+      const without = transLines(help).filter((l) => l.id !== 'ja')
+      await trans.set(without, fast ? 'swap' : 'type')
+      trans.squiggle('t', "t('I need help', {")
+      trans.tip('t', `<span class="e">Property 'ja' is missing</span> in type\n'{ de: string; es: string }' but required in\ntype 'Record<"de" | "es" | "ja", string>'.`)
+      if (!fast) {
+        await sleep(2200)
+        if (cur !== 3) return
+        trans.tip(null)
+        await trans.set(transLines(help), 'type', 26)
+        trans.clearSquiggles()
+        trans.flash('ja')
+      }
+    } else if (cur === 3 || i === 4) {
+      await trans.set(transLines(help), 'swap')
+    }
+    if (i === 4) {
+      await sleep(200)
+      vue.tip('v6', paint(hoverType(help).split('\n')[0]) + '\n' + hoverType(help).split('\n').slice(1).map((s) => paint(s)).join('\n'))
+    }
+  }
+  async function run() {
+    if (running) return
+    running = true
+    while (cur !== target) {
+      const next = target > cur ? cur + 1 : target
+      const fast = Math.abs(target - next) > 0 || target < cur
+      cur = next
+      await enter(cur, fast)
+    }
+    running = false
+  }
+  const sec = document.querySelector('#va .a-scrolly')
+  function onScroll() {
+    const r = sec.getBoundingClientRect()
+    const step = Math.max(0, Math.min(STEPS.length - 1, Math.floor((-r.top + innerHeight * 0.25) / (innerHeight * 0.85))))
+    hint.style.opacity = r.top < -40 ? 0 : 1
+    if (step !== target) { target = step; run() }
+  }
+  if (matchMedia('(max-width: 900px)').matches) {
+    // small screens: no scroll story, show the end state
+    target = 2; run()
+  } else {
+    addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true })
+    target = 0; run()
+    // first step plays by itself after a beat so the hero is never static
+    setTimeout(() => { if (target === 0 && scrollY < 50) { target = 1; run() } }, 1600)
+  }
+
+  // ---------- phrasebook ----------
+  const list = document.getElementById('aList')
+  const bkT = new Editor(document.getElementById('bkTrans'))
+  const bkU = new Editor(document.getElementById('bkUse'))
+  const bkP = new Preview(document.getElementById('bkPv'), 'renders')
+  const bkC = new Cycler([bkP], 1100)
+  const KIND = { text: 'text', param: 'params', zod: 'zod' }
+  list.innerHTML = P.map((p, i) => `<li><button data-i="${i}" aria-current="false"><span lang="en">${esc(p.fn ? p.fn.en(p.sample()) : p.en)}</span><small>${KIND[p.kind]}</small></button></li>`).join('')
+  let fw = 'vue', idx = -1, timer = null, visible = false, paused = false
+  const DUR = 4800
+  list.closest('.book').style.setProperty('--dur', DUR + 'ms')
+  function show(i, mode = 'swap') {
+    idx = i
+    const p = P[i]
+    list.querySelectorAll('button').forEach((b) => b.setAttribute('aria-current', String(+b.dataset.i === i)))
+    bkT.title(p.kind === 'zod' ? 'lang/validation.ts' : 'lang/translations.ts', 'shared')
+    bkT.set(transLines(p, { file: false }), mode, 9)
+    const zod = p.kind === 'zod'
+    bkU.title(zod ? 'schemas.ts' : fw === 'vue' ? `${cap(p.group)}.vue` : `${cap(p.group)}.tsx`, zod ? 'Vue + React' : fw === 'vue' ? 'Vue' : 'React')
+    bkU.set(fw === 'vue' ? vueLines(p) : reactLines(p), mode, 9)
+    bkC.start(p)
+  }
+  function schedule() {
+    clearTimeout(timer)
+    if (!visible || paused) return
+    timer = setTimeout(() => { show((idx + 1) % P.length, 'type'); schedule() }, DUR)
+  }
+  list.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { show(+b.dataset.i, 'swap'); schedule() } })
+  const book = list.closest('.book')
+  book.addEventListener('pointerenter', () => { paused = true; book.classList.add('paused'); clearTimeout(timer) })
+  book.addEventListener('pointerleave', () => { paused = false; book.classList.remove('paused'); show(idx, 'instant'); schedule() })
+  document.getElementById('aFw').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return
+    fw = b.dataset.fw
+    document.querySelectorAll('#aFw button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+    bkU.recs = []; bkU.body.innerHTML = ''
+    show(idx, 'swap')
+  })
+  show(0, 'instant')
+  inView(book, (v) => { visible = v; schedule() }, { threshold: 0.3 })
+}
+
+// ============================================================
+// Variant B: docked code, Zod playground, type error
+// ============================================================
+function initB() {
+  const trans = new Editor(document.getElementById('bTrans'), { file: 'lang/translations.ts', fw: 'one file' })
+  const vue = new Editor(document.getElementById('bVue'), { file: 'Component.vue', fw: 'Vue' })
+  const react = new Editor(document.getElementById('bReact'), { file: 'Component.tsx', fw: 'React' })
+  const pvV = new Preview(document.getElementById('bPvVue'), 'Vue')
+  const pvR = new Preview(document.getElementById('bPvReact'), 'React')
+  const cyc = new Cycler([pvV, pvR], 1150)
+  const order = [0, 12, 4, 16, 2, 13, 8, 15, 11, 18, 5, 14, 3, 17, 9, 6, 19, 10, 1, 7]
+  let k = 0
+  async function loop() {
+    for (;;) {
+      const p = P[order[k % order.length]]
+      trans.tip(null)
+      const pv = p.kind === 'zod'
+      vue.title(pv ? 'schemas.ts' : `${cap(p.group)}.vue`, pv ? 'Vue + React' : 'Vue')
+      react.title(pv ? 'schemas.ts' : `${cap(p.group)}.tsx`, pv ? 'Vue + React' : 'React')
+      await trans.set(transLines(p, { file: false }), k === 0 ? 'instant' : 'type', 15)
+      vue.set(vueLines(p), 'swap'); react.set(reactLines(p), 'swap')
+      cyc.start(p)
+      await sleep(400)
+      const ht = hoverType(p)
+      trans.tip('tc', ht.split('\n').map((s) => paint(s)).join('\n'))
+      await sleep(4300)
+      k++
+    }
+  }
+  loop()
+  const sticky = document.getElementById('bSticky')
+  const dock = document.getElementById('bDock')
+  const head = sticky.querySelector('.b-head')
+  const capEl = sticky.querySelector('.b-mid-cap')
+  const onScroll = () => {
+    if (innerWidth <= 1000) return
+    const r = dock.getBoundingClientRect()
+    const p = Math.max(0, Math.min(1, -r.top / (r.height - innerHeight)))
+    // the code starts under the hero copy and docks under the caption
+    const from = head.offsetTop + head.offsetHeight + 36
+    const to = capEl.offsetTop + capEl.offsetHeight + 28
+    const pp = Math.min(1, p * 1.7)
+    const e = 1 - Math.pow(1 - pp, 3)
+    sticky.style.setProperty('--p', p.toFixed(3))
+    sticky.style.setProperty('--ty', (from + (to - from) * e).toFixed(1) + 'px')
+  }
+  addEventListener('resize', onScroll)
+  addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true })
+  onScroll()
+
+  // ---------- Zod playground ----------
+  const zl = document.getElementById('zLang')
+  zl.innerHTML = LANGS.map((l, i) => `<button type="button" aria-pressed="${i === 1}" data-l="${l}">${l.toUpperCase()}</button>`).join('')
+  let zlang = 'de'
+  const schema = new Editor(document.getElementById('zSchema'), { file: 'schemas.ts', fw: 'app + backend' })
+  const zLines = [
+    { id: 'a', text: "import { z } from 'zod'" },
+    { id: 'b', text: "import { text, validation } from './lang'" },
+    { id: 'c', text: '' },
+    { id: 'd', text: 'export const signup = z.object({' },
+    { id: 'name', text: '  name: z.string()' },
+    { id: 'n1', text: '    .min(1, { error: text(validation.required) })' },
+    { id: 'n2', text: '    .max(50, { error: text(validation.tooLong) }),' },
+    { id: 'email', text: '  email: z.email({ error: text(validation.invalidEmail) }),' },
+    { id: 'password', text: '  password: z.string().min(8, { error: text(validation.tooShort) }),' },
+    { id: 'e', text: '})' },
+  ]
+  schema.set(zLines, 'instant')
+  const form = document.getElementById('zForm')
+  function validate(animate) {
+    const v = Object.fromEntries(new FormData(form))
+    const errs = {
+      name: !v.name.trim() ? ['required', 'n1', {}] : v.name.length > 50 ? ['tooLong', 'n2', { maximum: 50 }] : null,
+      email: !/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v.email) ? ['invalidEmail', 'email', {}] : null,
+      password: v.password.length < 8 ? ['tooShort', 'password', { minimum: 8 }] : null,
+    }
+    schema.recs.forEach((r) => r.el.classList.remove('hl'))
+    for (const [name, e] of Object.entries(errs)) {
+      const input = form.elements[name]
+      const msg = input.nextElementSibling
+      input.setAttribute('aria-invalid', String(!!e))
+      const txt = e ? textOf(byKey[e[0]], zlang, e[2]) : ''
+      if (msg.dataset.t !== txt) {
+        msg.dataset.t = txt
+        msg.innerHTML = e ? ICON.alert + esc(txt) : ''
+        msg.lang = zlang
+        if (animate && e) msg.animate([{ filter: 'blur(5px)', opacity: 0 }, { filter: 'none', opacity: 1 }], { duration: 380, easing: 'cubic-bezier(.16,1,.3,1)' })
+      }
+      if (e) schema.find(e[1])?.el.classList.add('hl')
+    }
+  }
+  form.addEventListener('input', () => validate(true))
+  zl.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return
+    zlang = b.dataset.l
+    zl.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+    validate(true)
+  })
+  validate(false)
+
+  // ---------- type error ----------
+  const safe = new Editor(document.getElementById('bSafe'), { file: 'lang/translations.ts', fw: 'tsc' })
+  const p = byKey['Add to cart']
+  safe.set(transLines(p, { file: false }), 'instant')
+  let played = false
+  inView(safe.el, async (v) => {
+    if (!v || played) return
+    played = true
+    for (;;) {
+      await sleep(900)
+      await safe.set(transLines(p, { file: false }).filter((l) => l.id !== 'es'), 'type')
+      safe.squiggle('t', "t('Add to cart', {")
+      safe.tip('t', `<span class="e">Property 'es' is missing</span> in type '{ de: string; ja: string }'\nbut required in type 'Record<"de" | "es" | "ja", string>'. ts(2741)`)
+      await sleep(3200)
+      safe.tip(null)
+      await safe.set(transLines(p, { file: false }), 'type', 34)
+      safe.clearSquiggles()
+      safe.flash('es')
+      await sleep(3600)
+    }
+  }, { threshold: 0.5 })
+}
+
+// ============================================================
+// Variant C: extract every string, page-wide language switch, ledger
+// ============================================================
+const PAGE = {
+  h1: { en: 'Every string in your app, translated and type-checked.', de: 'Jeder Text deiner App, übersetzt und typgeprüft.', es: 'Cada texto de tu app, traducido y con tipos.', ja: 'アプリのすべての文字列を、翻訳して型チェック。' },
+  lede: { en: 'Wrap the text you already wrote in <code>t()</code> and add the other languages right there. The English stays the key, TypeScript checks the rest.', de: 'Pack den Text, den du schon geschrieben hast, in <code>t()</code> und ergänze die anderen Sprachen direkt daneben. Das Englische bleibt der Schlüssel, TypeScript prüft den Rest.', es: 'Envuelve el texto que ya escribiste en <code>t()</code> y añade los demás idiomas ahí mismo. El inglés sigue siendo la clave, TypeScript comprueba el resto.', ja: '書いたテキストを <code>t()</code> で包み、その場で他の言語を追加するだけ。英語がそのままキーになり、残りは TypeScript がチェックします。' },
+  cta: { en: 'Get started', de: 'Loslegen', es: 'Empezar', ja: 'はじめる' },
+  note: { en: 'Click any text in the app to jump to its translation.', de: 'Klick auf einen Text in der App, um zu seiner Übersetzung zu springen.', es: 'Haz clic en cualquier texto de la app para ir a su traducción.', ja: 'アプリ内のテキストをクリックすると、その翻訳へ移動します。' },
+  fwH: { en: 'Vue or React. Same file.', de: 'Vue oder React. Dieselbe Datei.', es: 'Vue o React. El mismo archivo.', ja: 'Vue でも React でも、同じファイル。' },
+  fwP: { en: 'The Vue adapter returns a computed ref, the React adapter a hook under a provider. Both read the same translation tree.', de: 'Der Vue-Adapter liefert ein Computed Ref, der React-Adapter einen Hook unter einem Provider. Beide lesen denselben Übersetzungsbaum.', es: 'El adaptador de Vue devuelve un computed ref, el de React un hook bajo un provider. Ambos leen el mismo árbol de traducciones.', ja: 'Vue アダプターは computed ref を、React アダプターは Provider 配下のフックを返します。どちらも同じ翻訳ツリーを読みます。' },
+  ledH: { en: 'Twenty texts, four languages.', de: 'Zwanzig Texte, vier Sprachen.', es: 'Veinte textos, cuatro idiomas.', ja: '20 のテキスト、4 つの言語。' },
+  ledP: { en: 'Plain texts, texts with parameters, and Zod messages. Parameters are plain code, so Intl formatting works the way you know it.', de: 'Einfache Texte, Texte mit Parametern und Zod-Meldungen. Parameter sind normaler Code, Intl-Formatierung funktioniert wie gewohnt.', es: 'Textos simples, textos con parámetros y mensajes de Zod. Los parámetros son código normal, así que Intl funciona como siempre.', ja: 'シンプルなテキスト、パラメーター付きテキスト、Zod のメッセージ。パラメーターは普通のコードなので、Intl もいつも通り使えます。' },
+  close: { en: 'This page switches language with the same library.', de: 'Diese Seite wechselt die Sprache mit derselben Library.', es: 'Esta página cambia de idioma con la misma librería.', ja: 'このページも同じライブラリで言語を切り替えています。' },
+}
+function initC() {
+  const strs = [...document.querySelectorAll('#cMock [data-str]')]
+  const keys = strs.map((s) => s.dataset.str)
+  const vals = { unread: { count: 3 }, greeting: { name: 'Mia' }, editedAgo: { minutes: 5 }, total: { sum: 1249.5 } }
+  const pick = (el) => byKey[el.dataset.str]
+  function paintStr(el, l, animate) {
+    const p = pick(el)
+    const inner = uiHTML(p, l, vals[p.key])
+    const tmp = document.createElement('div'); tmp.innerHTML = inner
+    const nu = tmp.firstElementChild.innerHTML
+    if (!animate || RM) { el.innerHTML = nu; el.lang = l; return }
+    el.animate([{ filter: 'blur(0)', opacity: 1 }, { filter: 'blur(6px)', opacity: 0 }], { duration: 200, easing: 'ease-in' }).finished.then(() => {
+      el.innerHTML = nu; el.lang = l
+      el.animate([{ filter: 'blur(6px)', opacity: 0, transform: 'translateY(3px)' }, { filter: 'blur(0)', opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.16,1,.3,1)' })
+    })
+  }
+  strs.forEach((el) => paintStr(el, 'en', false))
+
+  const ed = new Editor(document.getElementById('cEd'), { file: 'lang/translations.ts', fw: '' })
+  const head = [
+    { id: 'h0', text: "import { group, t } from './setup'" },
+    { id: 'h1', text: '' },
+    { id: 'h2', text: 'export const app = group(' },
+  ]
+  const tail = [{ id: 'z', text: ')' }]
+  const folded = (p) => {
+    const base = p.sig ? `{ ${p.key}: (${p.sig.replace('p: ', 'p: ')}) => … }` : q(p.en)
+    return { id: 'f-' + p.key, text: `  t(${base}, { … }),` }
+  }
+  const open = (p) => {
+    const base = p.sig ? `{ ${p.key}: (${p.sig}) => ${p.code.en} }` : q(p.en)
+    return [
+      { id: 'f-' + p.key, text: `  t(${base}, {` },
+      ...OTHER.map((l) => ({ id: `${l}-${p.key}`, text: `    ${l}: ${p.sig ? '(p) => ' + p.code[l] : q(p[l])},` })),
+      { id: 'c-' + p.key, text: '  }),' },
+    ]
+  }
+  const linesFor = (done, openKey) => [...head, ...done.flatMap((k) => (k === openKey ? open(byKey[k]) : [folded(byKey[k])])), ...tail]
+
+  const langs = document.getElementById('cMockLangs')
+  langs.innerHTML = `<i></i>${LANGS.map((l) => `<span data-l="${l}">${l}</span>`).join('')}`
+  const setMockLang = (l) => {
+    langs.querySelectorAll('span').forEach((s) => s.classList.toggle('on', s.dataset.l === l))
+    langs.querySelector('i').style.transform = `translateX(${LANGS.indexOf(l) * 100}%)`
+  }
+  setMockLang('en')
+
+  async function fly(el, targetLine) {
+    const a = el.getBoundingClientRect()
+    const chip = document.createElement('div')
+    chip.className = 'fly'
+    chip.textContent = `'${el.textContent}'`
+    document.body.appendChild(chip)
+    const b = targetLine.getBoundingClientRect()
+    const x0 = a.left, y0 = a.top + a.height / 2 - 12
+    const x1 = b.left + 48, y1 = b.top
+    if (RM) { chip.remove(); return }
+    await chip.animate(
+      [
+        { transform: `translate(${x0}px, ${y0}px) scale(1)`, opacity: 0 },
+        { transform: `translate(${x0}px, ${y0 - 10}px) scale(1.02)`, opacity: 1, offset: 0.15 },
+        { transform: `translate(${(x0 + x1) / 2}px, ${Math.min(y0, y1) - 60}px) scale(0.96)`, opacity: 1, offset: 0.55 },
+        { transform: `translate(${x1}px, ${y1}px) scale(0.92)`, opacity: 0 },
+      ],
+      { duration: 900, easing: 'cubic-bezier(.45,0,.2,1)' },
+    ).finished
+    chip.remove()
+  }
+
+  let done = []
+  let started = false
+  let langI = 0
+  let cycle = null
+  async function extract() {
+    await ed.set([...head, ...tail], 'instant')
+    for (const el of strs) {
+      el.classList.add('pick')
+      await sleep(350)
+      const key = el.dataset.str
+      done.push(key)
+      // add the opened block (empty first so the chip has a target)
+      await ed.set(linesFor(done.slice(0, -1).concat([]), null).slice(0, -1).concat([{ id: 'f-' + key, text: '' }], tail), 'instant')
+      const target = ed.find('f-' + key).el
+      ed.body.scrollTo({ top: target.offsetTop - 60, behavior: 'smooth' })
+      fly(el, target)
+      await sleep(550)
+      await ed.set(linesFor(done, key), 'type', 9)
+      el.classList.remove('pick'); el.classList.add('done')
+      await sleep(250)
+    }
+    await ed.set(linesFor(done, null), 'swap')
+    ed.body.scrollTo({ top: 0, behavior: 'smooth' })
+    cycle = setInterval(() => { langI = (langI + 1) % 4; const l = LANGS[langI]; setMockLang(l); strs.forEach((el, i) => setTimeout(() => paintStr(el, l, true), i * 55)) }, 2000)
+  }
+  inView(document.getElementById('cMock'), (v) => { if (v && !started) { started = true; setTimeout(extract, 500) } }, { threshold: 0.4 })
+  strs.forEach((el) => el.addEventListener('click', async () => {
+    if (!el.classList.contains('done')) return
+    const key = el.dataset.str
+    await ed.set(linesFor(done, key), 'swap')
+    const line = ed.find('f-' + key)
+    ed.body.scrollTo({ top: line.el.offsetTop - 40, behavior: 'smooth' })
+    OTHER.forEach((l) => ed.flash(`${l}-${key}`))
+  }))
+
+  // ---------- Vue / React ----------
+  const cv = new Editor(document.getElementById('cVue'), { file: 'Orders.vue', fw: 'Vue' })
+  const cr = new Editor(document.getElementById('cReact'), { file: 'Orders.tsx', fw: 'React' })
+  cv.set([
+    '<script setup lang="ts">',
+    "import { useLang } from '~/lang'",
+    'const text = useLang((all) => all.app)',
+    '<\/script>',
+    '',
+    '<template>',
+    '  <h1>{{ text.greeting({ name: user.name }) }}</h1>',
+    '  <Badge>{{ text.unread({ count: inbox.length }) }}</Badge>',
+    "  <button>{{ text['Add to cart'] }}</button>",
+    "  <button>{{ text['I need help'] }}</button>",
+    '</template>',
+  ].map((text, i) => ({ id: 'l' + i, text })), 'instant')
+  cr.set([
+    "import { useLang } from './lang'",
+    '',
+    'export function Orders() {',
+    '  const text = useLang((all) => all.app)',
+    '  return (',
+    '    <>',
+    '      <h1>{text.greeting({ name: user.name })}</h1>',
+    '      <Badge>{text.unread({ count: inbox.length })}</Badge>',
+    "      <button>{text['Add to cart']}</button>",
+    "      <button>{text['I need help']}</button>",
+    '    </>',
+    '  )',
+    '}',
+  ].map((text, i) => ({ id: 'l' + i, text })), 'instant')
+
+  // ---------- ledger ----------
+  const led = document.getElementById('cLedger')
+  const dot = (l) => `<span class="dot" style="background:var(--${l})"></span>`
+  const live = { unread: { count: 3 }, editedAgo: { minutes: 5 } }
+  const KIND = { text: 'text', param: 'params', zod: 'zod' }
+  function cell(p, l) { return esc(textOf(p, l, live[p.key])) }
+  led.innerHTML = `<thead><tr><th>${dot('en')}English · key</th><th>${dot('de')}Deutsch</th><th>${dot('es')}Español</th><th lang="ja">${dot('ja')}日本語</th></tr></thead><tbody>${P.map((p) => `<tr data-k="${esc(p.key)}"><td>${cell(p, 'en')}<small>${p.kind === 'text' ? '' : p.key + ' · '}${KIND[p.kind]}</small></td>${OTHER.map((l) => `<td class="${l}" lang="${l}"><span class="tick">${cell(p, l)}</span></td>`).join('')}</tr>`).join('')}</tbody>`
+  const rows = [...led.querySelectorAll('tbody tr')]
+  let li = 0
+  inView(led, (v) => {
+    clearInterval(led._t)
+    if (!v) return
+    led._t = setInterval(() => {
+      rows.forEach((r) => r.classList.remove('lit'))
+      rows[li % rows.length].classList.add('lit')
+      li++
+      live.unread.count = (live.unread.count % 9) + 1
+      live.editedAgo.minutes = (live.editedAgo.minutes % 59) + 1
+      for (const k of ['unread', 'editedAgo']) {
+        const r = led.querySelector(`tr[data-k="${k}"]`)
+        r.cells[0].firstChild.textContent = textOf(byKey[k], 'en', live[k])
+        OTHER.forEach((l, i) => (r.cells[i + 1].firstChild.textContent = textOf(byKey[k], l, live[k])))
+      }
+    }, 900)
+  }, { threshold: 0.1 })
+
+  // ---------- page language (dogfooding) ----------
+  const seg = document.getElementById('cPageLang')
+  seg.hidden = false
+  seg.innerHTML = LANGS.map((l, i) => `<button aria-pressed="${!i}" data-l="${l}">${l.toUpperCase()}</button>`).join('')
+  seg.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return
+    const l = b.dataset.l
+    seg.querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+    document.documentElement.lang = l
+    document.querySelectorAll('#vc [data-i]').forEach((el, i) => {
+      const val = PAGE[el.dataset.i][l]
+      if (RM) { el.innerHTML = val; return }
+      el.animate([{ filter: 'blur(0)', opacity: 1 }, { filter: 'blur(8px)', opacity: 0 }], { duration: 180, delay: i * 30, fill: 'forwards' }).finished.then(() => {
+        el.innerHTML = val
+        el.animate([{ filter: 'blur(8px)', opacity: 0, transform: 'translateY(4px)' }, { filter: 'blur(0)', opacity: 1, transform: 'none' }], { duration: 460, easing: 'cubic-bezier(.16,1,.3,1)', fill: 'forwards' })
+      })
+    })
+  })
+}
+
+// ============================================================
+// Prototype switcher
+// ============================================================
+const VARIANTS = ['a', 'b', 'c']
+const params = new URLSearchParams(location.search)
+let v = VARIANTS.includes(params.get('variant')) ? params.get('variant') : 'a'
+const main = document.getElementById('v' + v)
+main.classList.add('on')
+document.getElementById('pLabel').innerHTML = `${v.toUpperCase()} <em>(${main.dataset.name})</em>`
+;({ a: initA, b: initB, c: initC })[v]()
+const go = (d) => {
+  const n = VARIANTS[(VARIANTS.indexOf(v) + d + VARIANTS.length) % VARIANTS.length]
+  params.set('variant', n)
+  location.search = params.toString()
+}
+document.getElementById('pPrev').onclick = () => go(-1)
+document.getElementById('pNext').onclick = () => go(1)
+addEventListener('keydown', (e) => {
+  if (e.target.closest('input, textarea, [contenteditable]')) return
+  if (e.key === 'ArrowLeft') go(-1)
+  if (e.key === 'ArrowRight') go(1)
+})
+</script>
+</body>
+</html>
